@@ -52,7 +52,9 @@ def test_public_modules_requires_a_package_directory(tmp_path: Path) -> None:
         reference.public_modules("missing", tmp_path / "missing")
 
 
-def test_main_requires_one_package_argument(capsys: pytest.CaptureFixture[str]) -> None:
+def test_main_requires_one_package_argument(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     assert reference.main([]) == 2
     assert capsys.readouterr().err == "usage: check_reference.py PACKAGE\n"
 

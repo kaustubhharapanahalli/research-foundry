@@ -36,8 +36,18 @@ make docs   # builds the site in site/
 ```
 
 The docs have how-to guides and an API reference generated from the
-docstrings. Publishing is left to the project; no hosting workflow is
-configured. To contribute, see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+docstrings. To publish them, set **Settings → Pages → Source** to **GitHub
+Actions**. The included workflow builds the site and publishes it on pushes
+to `main`. To contribute, see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+{%- if cookiecutter.docs_domain %}
+
+For `{{ cookiecutter.docs_domain }}`, create a DNS CNAME record pointing to
+`{{ cookiecutter.github_owner }}.github.io`, then enter
+`{{ cookiecutter.docs_domain }}` in **Settings → Pages → Custom domain**.
+Turn on **Enforce HTTPS** once GitHub has issued the certificate. Pages
+deployments through Actions ignore a `CNAME` file; the Pages setting is the
+only place the custom domain goes.
+{%- endif %}
 {%- endif %}
 
 ## Publishing

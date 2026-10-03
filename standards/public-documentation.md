@@ -218,8 +218,9 @@ Docs may host or preview the site, but it is not required.
 - **Example:** `mike deploy --push --update-aliases 2.0 stable` publishes a
   release without replacing `latest` from `main`.
 - **Source:** [mike, "Deploying docs"](https://github.com/jimporter/mike#deploying-docs); [Read the Docs, "Versions"](https://docs.readthedocs.com/platform/stable/versions.html); [PyTorch, "Docs"](https://pytorch.org/docs/stable/).
-- **Check:** not yet enforced; no hosting or versioned-documentation workflow
-  is configured for generated projects.
+- **Check:** the generated methodology workflow publishes `main` to Pages and
+  runs `make refuse-private` to verify repository visibility; it does not
+  publish release-versioned documentation.
 
 ### PD14. The project files are present
 

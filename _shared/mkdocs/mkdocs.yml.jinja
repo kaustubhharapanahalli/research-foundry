@@ -1,5 +1,9 @@
 site_name: "{{ cookiecutter.project_name }}"
+{%- if cookiecutter.docs_domain %}
+site_url: "https://{{ cookiecutter.docs_domain }}/"
+{%- else %}
 site_url: "https://{{ cookiecutter.github_owner }}.github.io/{{ cookiecutter.repo_name }}/"
+{%- endif %}
 repo_url: "https://github.com/{{ cookiecutter.github_owner }}/{{ cookiecutter.repo_name }}"
 
 theme:

@@ -1,5 +1,6 @@
 """The methodology template renders the right files for each answer."""
 
+import re
 import tomllib
 from collections.abc import Callable
 from importlib.util import module_from_spec, spec_from_file_location
@@ -138,6 +139,187 @@ def test_public_docs_ship_the_standard_files(render: Render) -> None:
         ][0]["primary"]
         == "indigo"
     )
+    assert (project / ".github" / "workflows" / "docs.yml").is_file()
+
+
+def test_pages_workflow_is_removed_without_public_docs(render: Render) -> None:
+    project = render("methodology", public_docs="no")
+    assert not (project / ".github" / "workflows" / "docs.yml").exists()
+
+
+def test_site_url_uses_the_github_pages_address_by_default(
+    render: Render,
+) -> None:
+    project = render("methodology", **PUBLIC)
+    configuration = yaml.safe_load((project / "mkdocs.yml").read_text())
+    assert configuration["site_url"] == (
+        "https://your-github-user.github.io/my-project/"
+    )
+
+
+def test_site_url_uses_the_custom_docs_domain(render: Render) -> None:
+    project = render("methodology", docs_domain="docs.example.org", **PUBLIC)
+    configuration = yaml.safe_load((project / "mkdocs.yml").read_text())
+    assert configuration["site_url"] == "https://docs.example.org/"
+
+
+def test_pages_workflow_parses_and_has_no_template_syntax(
+    render: Render,
+) -> None:
+    project = render("methodology", **PUBLIC)
+    path = project / ".github" / "workflows" / "docs.yml"
+    text = path.read_text()
+    workflow = yaml.safe_load(text)
+    assert not LEFTOVER.search(text)
+    assert (workflow.get(True) or workflow["on"]) == {
+        "push": {"branches": ["main"]},
+        "workflow_dispatch": None,
+    }
+    build = workflow["jobs"]["build"]
+    assert [step.get("run") for step in build["steps"]] == [
+        None,
+        None,
+        "make install",
+        "make docs",
+        None,
+    ]
+    assert build["steps"][-1]["with"]["path"] == "site/"
+    assert workflow["concurrency"] == {
+        "group": "pages",
+        "cancel-in-progress": False,
+    }
+    assert workflow["permissions"] == {"contents": "read"}
+    assert workflow["jobs"]["deploy"]["environment"]["url"] == (
+        "${{ steps.deployment.outputs.page_url }}"
+    )
+
+
+def test_pages_workflow_guards_deploy_and_pins_each_action(
+    render: Render,
+) -> None:
+    text = (
+        render("methodology", **PUBLIC) / ".github" / "workflows" / "docs.yml"
+    ).read_text()
+    workflow = yaml.safe_load(text)
+    deploy = workflow["jobs"]["deploy"]
+    assert deploy["if"] == (
+        "${{ format('{0}', github.event.repository.private) == 'false' }}"
+    )
+    steps = deploy["steps"]
+    assert [step.get("run") for step in steps[:3]] == [
+        None,
+        None,
+        "make refuse-private",
+    ]
+    assert steps[2]["env"] == {
+        "GH_TOKEN": "${{ github.token }}",
+        "GITHUB_REPOSITORY": "${{ github.repository }}",
+    }
+    assert steps[0]["uses"].startswith("actions/checkout@")
+    assert steps[0]["with"]["persist-credentials"] is False
+    assert steps[1]["uses"].startswith("astral-sh/setup-uv@")
+    assert all(
+        step["run"].startswith("make ") and "${{" not in step["run"]
+        for job in workflow["jobs"].values()
+        for step in job["steps"]
+        if "run" in step
+    )
+    actions = re.findall(r"^\s+- uses: (.+)$", text, re.MULTILINE)
+    assert actions
+    assert all(
+        re.fullmatch(r".+@[0-9a-f]{40} # v\S+", action) for action in actions
+    )
+
+
+def test_publish_instructions_omit_custom_domain_by_default(
+    render: Render,
+) -> None:
+    readme = (render("methodology", **PUBLIC) / "README.md").read_text()
+    assert "Settings → Pages" in readme
+    assert "Custom domain" not in readme
+    assert "CNAME" not in readme
+
+
+def test_publish_instructions_include_only_the_selected_custom_domain(
+    render: Render,
+) -> None:
+    readme = (
+        render("methodology", docs_domain="docs.example.org", **PUBLIC)
+        / "README.md"
+    ).read_text()
+    assert "docs.example.org" in readme
+    assert "your-github-user.github.io" in readme
+    assert "CNAME" in readme
+    assert "Custom domain" in readme
+    assert "Enforce HTTPS" in readme
+
+
+def test_refuse_private_target_checks_repository_visibility(
+    render: Render,
+) -> None:
+    makefile = (
+        render("methodology", **PUBLIC) / "make" / "docs.mk"
+    ).read_text()
+    assert 'gh api "repos/$$GITHUB_REPOSITORY" --jq .private' in makefile
+    assert 'if [ "$$private" != "false" ]' in makefile
+    assert "expected repository privacy to be false" in makefile
+
+
+def test_docs_domain_is_ignored_without_public_docs(render: Render) -> None:
+    project = render(
+        "methodology", public_docs="no", docs_domain="https://invalid"
+    )
+    assert not (project / ".github" / "workflows" / "docs.yml").exists()
+
+
+def test_docs_domain_refuses_a_scheme(
+    render: Render, capfd: pytest.CaptureFixture[str]
+) -> None:
+    with pytest.raises(FailedHookException):
+        render("methodology", docs_domain="https://x.org", **PUBLIC)
+    error = capfd.readouterr().err
+    assert "docs_domain" in error
+    assert "remove schemes" in error
+
+
+def test_docs_domain_refuses_a_path(
+    render: Render, capfd: pytest.CaptureFixture[str]
+) -> None:
+    with pytest.raises(FailedHookException):
+        render("methodology", docs_domain="x.org/docs", **PUBLIC)
+    error = capfd.readouterr().err
+    assert "docs_domain" in error
+    assert "remove schemes" in error
+
+
+def test_docs_domain_refuses_uppercase(
+    render: Render, capfd: pytest.CaptureFixture[str]
+) -> None:
+    with pytest.raises(FailedHookException):
+        render("methodology", docs_domain="X.org", **PUBLIC)
+    error = capfd.readouterr().err
+    assert "docs_domain" in error
+    assert "remove schemes" in error
+
+
+def test_docs_domain_refuses_a_single_label(
+    render: Render, capfd: pytest.CaptureFixture[str]
+) -> None:
+    with pytest.raises(FailedHookException):
+        render("methodology", docs_domain="x", **PUBLIC)
+    error = capfd.readouterr().err
+    assert "docs_domain" in error
+    assert "remove schemes" in error
+
+
+def test_docs_domain_refuses_a_port(
+    render: Render, capfd: pytest.CaptureFixture[str]
+) -> None:
+    with pytest.raises(FailedHookException):
+        render("methodology", docs_domain="x.org:8080", **PUBLIC)
+    error = capfd.readouterr().err
+    assert "docs_domain" in error
+    assert "remove schemes" in error
 
 
 def test_custom_docs_theme_ships_its_assets_and_css(

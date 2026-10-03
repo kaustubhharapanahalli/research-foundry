@@ -9,6 +9,8 @@ moved once projects may have been generated from it.
 
 ### Added
 
+- The methodology template's `docs_domain` answer and GitHub Pages workflow,
+  with a public-repository deployment guard and setup instructions.
 - The methodology template's `docs_theme` answer selects the generic Material
   palette or a customizable CSS palette with placeholder branding. Existing
   projects can change it later with

@@ -42,6 +42,7 @@ VARIANTS: dict[str, tuple[str, dict[str, str]]] = {
             "ml_pytorch": "no",
             "public_docs": "yes",
             "docs_theme": "custom",
+            "docs_domain": "docs.example.org",
             "contact_email": "maintainers@example.org",
         },
     ),

@@ -29,8 +29,10 @@ selects the default Material styling or a custom palette, fonts and placeholder
 branding.
 
 The template drops the Read the Docs configuration and Sphinx autosummary
-scaffolding. It does not configure a publishing workflow; each project
-chooses how to publish its site.
+scaffolding. With public documentation, it generates a GitHub Pages workflow
+that builds on pushes to `main`, checks that the repository is public, and
+deploys through GitHub Actions. The `docs_domain` answer selects a custom
+hostname; otherwise the site uses GitHub Pages' repository address.
 
 ## Consequences
 
@@ -38,5 +40,9 @@ chooses how to publish its site.
   public API modules, docstring coverage and public-page frontmatter.
 - A project can switch `docs_theme` later through
   `cruft update --variables-to-update`.
+- A project can set `docs_domain` later through
+  `cruft update --variables-to-update`; a custom domain also needs a DNS CNAME
+  record and the matching GitHub Pages setting.
 - Generated projects use one Markdown syntax for prose, snippets and API
-  content, while hosting and versioned documentation remain project choices.
+  content. The workflow publishes the current `main` site; versioned
+  documentation remains a separate project decision.

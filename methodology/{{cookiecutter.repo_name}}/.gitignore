@@ -1,5 +1,1 @@
 {% include "base/gitignore" -%}
-{% if cookiecutter.public_docs == "yes" %}
-# MkDocs output.
-site/
-{% endif -%}
