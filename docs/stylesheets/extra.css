@@ -1,0 +1,37 @@
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #035E63;
+  --md-primary-fg-color--light: #139CA1;
+  --md-primary-fg-color--dark: #024649;
+  --md-accent-fg-color: #8F2C05;
+  --md-default-bg-color: #F4ECD8;
+  --md-default-fg-color: #332A19;
+  --md-default-fg-color--light: #60533E;
+  --md-typeset-a-color: #0F766E;
+  --md-code-bg-color: #ECDFCB;
+  --md-code-fg-color: #332A19;
+  --md-footer-bg-color: #332A19;
+  --md-footer-bg-color--dark: #332A19;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #83CDD0;
+  --md-primary-fg-color--light: #B0E0E3;
+  --md-primary-fg-color--dark: #48B8BD;
+  --md-primary-bg-color: #211B16;
+  --md-primary-bg-color--light: #211B16B3;
+  --md-accent-fg-color: #FDC8B7;
+  --md-default-bg-color: #211B16;
+  --md-default-fg-color: #EFE6D8;
+  --md-default-fg-color--light: #C9B9A3;
+  --md-typeset-a-color: #83CDD0;
+  --md-code-bg-color: #2B2218;
+  --md-code-fg-color: #EFE6D8;
+  --md-footer-bg-color: #17120B;
+  --md-footer-bg-color--dark: #17120B;
+}
+
+/* The header mark is white on the light scheme's dark teal, and dark on the
+   dark scheme's light teal. */
+[data-md-color-scheme="slate"] .md-header .md-logo img {
+  filter: invert(1);
+}

@@ -5,7 +5,7 @@ endif
 
 PYTEST := uv run pytest -c .dev-config/pytest.ini --rootdir . tests src/research_foundry --doctest-modules
 
-.PHONY: install lint fmt test test-unit test-functional test-all test-heavy test-heavy-code test-heavy-software test-heavy-paper template-matrix install-skills throwaway free-runner-disk audit audit-generated audit-issue check-pins pins-issue dist release-check github-release refuse-private coverage ci
+.PHONY: install lint fmt test test-unit test-functional test-all test-heavy test-heavy-code test-heavy-software test-heavy-paper template-matrix install-skills throwaway free-runner-disk audit audit-generated audit-issue check-pins pins-issue dist release-check github-release refuse-private coverage typecheck docstrings doctest docs ci
 
 install: ## Install the locked toolchain and the git hook (PYTHON=3.12 to use another interpreter)
 	uv sync --locked
@@ -102,4 +102,17 @@ refuse-private: ## Refuse publication unless GitHub reports a public repository
 coverage: ## test-all, failing below 90% coverage of the plain Python
 	$(PYTEST) -m "not heavy" --cov --cov-config=.dev-config/.coveragerc
 
-ci: lint coverage ## Exactly what GitHub CI runs (PYTHON=3.12 to use another interpreter)
+typecheck: ## mypy --strict over src and tools
+	uv run mypy --strict --config-file .dev-config/mypy.ini src tools
+
+docstrings: ## Google docstrings (Ruff D) and 100% public docstring coverage (Interrogate)
+	uv run ruff check --config .dev-config/ruff.toml src tools
+	uv run interrogate src/research_foundry
+
+doctest: ## Every docstring example in src and tools, as a doctest
+	uv run pytest -c .dev-config/pytest.ini --rootdir . --doctest-modules src/research_foundry tools
+
+docs: ## Build the documentation site; any warning fails
+	uv run mkdocs build --strict
+
+ci: lint coverage docs ## Exactly what GitHub CI runs (PYTHON=3.12 to use another interpreter)
