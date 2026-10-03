@@ -75,8 +75,8 @@ docstring is missing.
   `resolve_device`.
 - **Source:** [mkdocstrings, "Automatic code reference pages"](https://mkdocstrings.github.io/recipes/#automatic-code-reference-pages); [Interrogate, "Usage"](https://interrogate.readthedocs.io/en/latest/#usage).
 - **Check:** `make docs-coverage` will generate and validate the `:::` module
-  blocks, then run Interrogate with a 100% threshold. Not yet enforced; the
-  docs scaffolding moves to mkdocs in a later change.
+  blocks against every public module under `src/`, then run Interrogate against
+  public names with a 100% threshold. Both checks run in `make docs-coverage`.
 
 ### PD4. Docstrings are Google style, and fit in 79 columns
 
@@ -98,17 +98,16 @@ prose. No line is longer than 79 characters. mkdocstrings' Python handler uses
 
 A function or module that takes or returns tensors states their shapes in a
 `Shape:` section. Use `*` for any number of leading dimensions and named sizes
-such as `(*, H_in)`. mkdocstrings' Google parser (griffe) renders a section it does not
-know, such as `Shape:`, as an admonition titled **Shape** (checked against
-griffe on 2026-10-02).
+such as `(*, H_in)`. mkdocstrings' Google parser (Griffe) renders the
+unrecognized `Shape:` section as a titled details block.
 
 - **Why:** shapes are the contract of tensor code, and they are what readers
   look for first.
 - **Example:** `Shape: input (*, H_in); output (*, H_out)`.
 - **Source:** [PyTorch, `Linear`, "Shape"](https://github.com/pytorch/pytorch/blob/main/torch/nn/modules/linear.py); [mkdocstrings Python, "Docstrings"](https://mkdocstrings.github.io/python/usage/configuration/docstrings/).
 - **Check:** the `public-docs` skill reviews the source section and
-  `make docs` will verify that mkdocstrings renders it. Not yet enforced; the
-  docs scaffolding moves to mkdocs in a later change.
+  `make docs` builds the mkdocstrings output with strict MkDocs mode; the
+  generated-project build test checks that **Shape** appears as a details block.
 
 ### PD6. Mathematics uses dollar delimiters in raw docstrings
 
@@ -120,9 +119,9 @@ when mkdocs builds the site.
   syntax renders consistently in docstrings and pages.
 - **Example:** `r"""Applies $y = xA^T + b$."""`
 - **Source:** [Python-Markdown Extensions, "Arithmatex"](https://facelessuser.github.io/pymdown-extensions/extensions/arithmatex/); [MathJax, "Writing Mathematics for MathJax"](https://docs.mathjax.org/en/latest/basic/mathematics.html); [Ruff, "escape-sequence-in-docstring (D301)"](https://docs.astral.sh/ruff/rules/escape-sequence-in-docstring/).
-- **Check:** `make lint` runs Ruff `D301`; `make docs` will run
-  `mkdocs build --strict` with `pymdownx.arithmatex`. Not yet enforced; the
-  docs scaffolding moves to mkdocs in a later change.
+- **Check:** `make lint` runs Ruff `D301`; `make docs` builds with
+  `pymdownx.arithmatex` in generic mode and loads MathJax from
+  `extra_javascript`.
 
 ### PD7. Every docstring example runs, and prints the same thing every time
 
@@ -148,9 +147,9 @@ it prints what the guide says.
   `docs/how-to/repeat-a-run.md`, and `tests/functional/test_docs_src.py`
   requires it to print `True`.
 - **Source:** [Python-Markdown Extensions, "Snippets"](https://facelessuser.github.io/pymdown-extensions/extensions/snippets/).
-- **Check:** `make test` runs the `docs_src` functional tests; `make docs` will
-  refuse a missing snippet. Not yet enforced; the docs scaffolding moves to
-  mkdocs in a later change.
+- **Check:** `make test` runs the `docs_src` functional tests; `make docs`
+  builds with `pymdownx.snippets` and `check_paths: true`, refusing a missing
+  snippet.
 
 ### PD9. Tutorials run on every build
 
@@ -163,8 +162,8 @@ contract without notebook state or committed outputs.
 - **Why:** a tutorial that stops running is the first thing a new user meets.
 - **Example:** `docs/tutorials/plot_first_run.py`, executed by mkdocs-gallery.
 - **Source:** [mkdocs-gallery, "mkdocs-gallery"](https://smarie.github.io/mkdocs-gallery/); [PyTorch tutorials, "README"](https://github.com/pytorch/tutorials).
-- **Check:** `make docs` will run mkdocs-gallery and fail on an example error.
-  Not yet enforced; the docs scaffolding moves to mkdocs in a later change.
+- **Check:** not yet enforced; the generated template does not yet include an
+  executable tutorial runner such as mkdocs-gallery.
 
 ### PD10. Changes are marked, and deprecations name two versions
 
@@ -190,8 +189,8 @@ MkDocs builds in strict mode, so every warning is an error.
   sees until a reader does.
 - **Example:** `make docs` runs `mkdocs build --strict`.
 - **Source:** [MkDocs, `build`, "Options"](https://www.mkdocs.org/user-guide/cli/#mkdocs-build).
-- **Check:** `make docs` will run `mkdocs build --strict`. Not yet enforced;
-  the docs scaffolding moves to mkdocs in a later change.
+- **Check:** `make docs` runs `uv run --group docs mkdocs build --strict`;
+  every MkDocs warning fails the build.
 
 ### PD12. Links are checked
 
@@ -205,8 +204,8 @@ pages, relative links and assets.
 - **Example:** `make docs-linkcheck` builds the site, then runs Lychee against
   the selected HTML files.
 - **Source:** [Lychee, "Command-line usage"](https://github.com/lycheeverse/lychee#commandline-usage); [PyTorch, `check-links.yml`](https://github.com/pytorch/pytorch/blob/main/.github/workflows/_link_check.yml).
-- **Check:** `make docs-linkcheck` will run Lychee against the built site. Not
-  yet enforced; the docs scaffolding moves to mkdocs in a later change.
+- **Check:** not yet enforced; this change does not add Lychee or a network
+  link-check target.
 
 ### PD13. Each release has its own docs
 
@@ -219,9 +218,8 @@ Docs may host or preview the site, but it is not required.
 - **Example:** `mike deploy --push --update-aliases 2.0 stable` publishes a
   release without replacing `latest` from `main`.
 - **Source:** [mike, "Deploying docs"](https://github.com/jimporter/mike#deploying-docs); [Read the Docs, "Versions"](https://docs.readthedocs.com/platform/stable/versions.html); [PyTorch, "Docs"](https://pytorch.org/docs/stable/).
-- **Check:** the release workflow will run Mike and verify the release,
-  `stable` and `latest` versions. Not yet enforced; the docs scaffolding moves
-  to mkdocs in a later change.
+- **Check:** not yet enforced; no hosting or versioned-documentation workflow
+  is configured for generated projects.
 
 ### PD14. The project files are present
 
@@ -259,9 +257,10 @@ nothing more. Design documents and ADRs keep the full OKF frontmatter.
   plugins. Agent-facing workflow fields do not belong in public page metadata
   and mean nothing to a public reader.
 - **Source:** [MkDocs, "Meta-data"](https://www.mkdocs.org/user-guide/writing-your-docs/#meta-data).
-- **Check:** the `public-docs` skill reviews page frontmatter; a mkdocs page
-  metadata check will enforce the two-key allowlist. Not yet enforced; the
-  docs scaffolding moves to mkdocs in a later change.
+- **Check:** `make docs-coverage` runs
+  `docs/check_frontmatter.py --public-pages docs`, enforcing exactly the
+  `title` and `description` keys on public pages while leaving ADRs on full
+  OKF frontmatter.
 
 ### PD17. No agent files in a public repository
 

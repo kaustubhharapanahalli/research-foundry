@@ -1,1 +1,1 @@
-{% include "sphinx/docs.mk" -%}
+{% include "mkdocs/docs.mk" -%}

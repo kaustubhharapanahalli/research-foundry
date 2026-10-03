@@ -11,13 +11,12 @@ differ across PyTorch releases, across platforms, and between CPU and GPU.
 
 So the package does three things:
 
-- {py:func}`~{{ cookiecutter.package_name }}.seeding.seed_everything` seeds
-  Python, NumPy and PyTorch from one integer. It also makes PyTorch raise an
+- `{{ cookiecutter.package_name }}.seeding.seed_everything` seeds Python,
+  NumPy and PyTorch from one integer. It also makes PyTorch raise an
   error on any operation that has no deterministic version, instead of
   quietly using a non-deterministic one.
-- {py:func}`~{{ cookiecutter.package_name }}.device.resolve_device` refuses a
-  device that is not there, instead of falling back to the CPU without
-  saying so.
-- {py:mod}`{{ cookiecutter.package_name }}.runrecord` writes down what a run
+- `{{ cookiecutter.package_name }}.device.resolve_device` refuses a device
+  that is not there, instead of falling back to the CPU without saying so.
+- `{{ cookiecutter.package_name }}.runrecord` writes down what a run
   used, so a result can be traced to the code, environment and seed that
   made it.

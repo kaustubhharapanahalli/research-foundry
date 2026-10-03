@@ -86,6 +86,51 @@ def test_generated_project_passes_its_own_ci(
 
 
 @pytest.mark.heavy
+def test_methodology_plain_docs_builds_with_mkdocs(
+    tmp_path: Path,
+) -> None:
+    """Build generated docs and check Shape/math rendering and snippet
+    refusal.
+    """
+    kind, answers = VARIANTS["methodology-plain-docs"]
+    project = _generate(kind, answers, tmp_path)
+    module = project / "src" / "my_project" / "shape_example.py"
+    module.write_text(
+        '"""Show math and shape metadata in the generated API.\n\n'
+        "Shape:\n"
+        "    input (*, H_in); output (*, H_out)\n\n"
+        "The relation is $y = xA^T + b$.\n"
+        '"""\n',
+        encoding="utf-8",
+    )
+    api = project / "docs" / "api" / "index.md"
+    api.write_text(
+        api.read_text(encoding="utf-8") + "\n\n::: my_project.shape_example\n",
+        encoding="utf-8",
+    )
+    done = _run(["make", "docs"], project)
+    assert done.returncode == 0, done.stdout[-4000:] + done.stderr[-2000:]
+    assert (project / "site" / "index.html").is_file()
+    api_html = (project / "site" / "api" / "index.html").read_text(
+        encoding="utf-8"
+    )
+    assert '<details class="shape" open>' in api_html
+    assert "<summary>Shape</summary>" in api_html
+    assert 'class="arithmatex' in api_html
+
+    guide = project / "docs" / "how-to" / "check-the-install.md"
+    guide.write_text(
+        guide.read_text(encoding="utf-8").replace(
+            '"check_install.py"', '"missing.py"'
+        ),
+        encoding="utf-8",
+    )
+    refused = _run(["make", "docs"], project)
+    assert refused.returncode != 0
+    assert "missing.py" in refused.stdout + refused.stderr
+
+
+@pytest.mark.heavy
 @pytest.mark.parametrize(
     ("line", "reason"),
     [

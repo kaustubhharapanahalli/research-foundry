@@ -7,6 +7,20 @@ moved once projects may have been generated from it.
 
 ## [Unreleased]
 
+### Added
+
+- The methodology template's `docs_theme` answer selects the generic Material
+  palette or a customizable CSS palette with placeholder branding. Existing
+  projects can change it later with
+  `cruft update --variables-to-update`.
+
+### Changed
+
+- The methodology template's generated documentation moves from Sphinx to
+  MkDocs Material and mkdocstrings, with strict builds, API module coverage,
+  and no generated Read the Docs configuration. Existing projects can apply
+  the update with `cruft update`.
+
 ## [0.1.0] - 2026-10-03
 
 The first stable release. It holds everything in 0.1.0rc1 below, and these

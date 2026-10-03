@@ -42,6 +42,14 @@ VARIANTS: list[tuple[str, dict[str, str]]] = [
         "methodology",
         {"public_docs": "yes", "contact_email": "maintainers@example.org"},
     ),
+    (
+        "methodology",
+        {
+            "public_docs": "yes",
+            "docs_theme": "custom",
+            "contact_email": "maintainers@example.org",
+        },
+    ),
     ("methodology", {"ml_pytorch": "no"}),
     ("methodology", {"dataset_registry": "yes"}),
     ("software", {"frontend_nextjs": "no"}),

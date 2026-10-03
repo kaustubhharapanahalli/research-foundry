@@ -14,6 +14,6 @@ uv run python docs_src/check_install.py
 It prints the installed version, such as `0.1.0`. An `ImportError` means
 the environment is not installed: run `make install` again.
 
-```{literalinclude} ../../docs_src/check_install.py
-:language: python
+```python
+--8<-- "check_install.py"
 ```

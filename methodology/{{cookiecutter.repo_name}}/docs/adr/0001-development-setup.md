@@ -31,14 +31,14 @@ every project starts the same way and can take later changes with
 - **Tests:** `tests/unit` and `tests/functional`, with the markers `slow` and
   `gpu`. CI runs everything except `gpu` on CPU. GPU tests run on the target
   machine before any real run.
-{%- if cookiecutter.ml_pytorch == "yes" %}
+  {%- if cookiecutter.ml_pytorch == "yes" %}
 - **Reproducibility is code, not convention:**
   - `seeding.py` seeds every generator and turns on deterministic algorithms;
   - `device.py` refuses a missing device instead of falling back;
   - `threads.py` refuses a thread budget larger than the CPUs this process may
     use;
   - `runrecord.py` records what each run ran on.
-{%- endif %}
+    {%- endif %}
 
 ## Consequences
 

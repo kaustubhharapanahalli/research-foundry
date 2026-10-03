@@ -81,6 +81,28 @@ def test_the_reason_is_the_hooks_own_words() -> None:
 
 
 @pytest.mark.unit
+def test_docs_theme_is_a_matrix_choice_only_for_public_docs(
+    tmp_path: Path,
+) -> None:
+    runnable, _ = matrix.variants(matrix.ROOT, "methodology", tmp_path)
+    docs = [
+        dict(variant.answers)
+        for variant in runnable
+        if dict(variant.answers).get("public_docs") == "yes"
+    ]
+    private = [
+        dict(variant.answers)
+        for variant in runnable
+        if dict(variant.answers).get("public_docs") == "no"
+    ]
+    assert {answers["docs_theme"] for answers in docs} == {
+        "generic",
+        "custom",
+    }
+    assert all("docs_theme" not in answers for answers in private)
+
+
+@pytest.mark.unit
 def test_a_passing_variant_runs_every_step_and_is_deleted(
     tmp_path: Path,
 ) -> None:

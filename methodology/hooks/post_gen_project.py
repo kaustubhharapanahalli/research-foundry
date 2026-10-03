@@ -17,6 +17,7 @@ ANSWERS: dict[str, str] = {
     "ml_pytorch": "{{ cookiecutter.ml_pytorch }}",
     "license": "{{ cookiecutter.license }}",
     "public_docs": "{{ cookiecutter.public_docs }}",
+    "docs_theme": "{{ cookiecutter.docs_theme }}",
     "contact_email": "{{ cookiecutter.contact_email }}",
     "dataset_registry": "{{ cookiecutter.dataset_registry }}",
     "run_records": "{{ cookiecutter.run_records }}",
@@ -45,21 +46,27 @@ STORE_ONLY = [
     Path("tests") / "functional" / "test_dispatched_run.py",
 ]
 DOCS_ONLY = [
-    Path("docs") / "conf.py",
+    Path("mkdocs.yml.jinja"),
     Path("docs") / "index.md",
-    Path("docs") / "_templates",
+    Path("docs") / "check_reference.py",
+    Path(".dev-config") / "check_frontmatter.py",
     Path("docs") / "api",
     Path("docs") / "how-to",
     Path("docs") / "explanation",
+    Path("docs") / "assets",
+    Path("docs") / "stylesheets",
     Path("docs_src"),
     Path("make") / "docs.mk",
-    Path(".readthedocs.yaml"),
     Path("CODE_OF_CONDUCT.md"),
     Path("CONTRIBUTING.md"),
     Path("SECURITY.md"),
     Path("CITATION.cff"),
     Path("tests") / "functional" / "test_docs_src.py",
     Path("tests") / "functional" / "test_project_files.py",
+]
+CUSTOM_DOCS_ONLY = [
+    Path("docs") / "assets",
+    Path("docs") / "stylesheets",
 ]
 
 
@@ -69,6 +76,18 @@ def remove(path: Path) -> None:
         shutil.rmtree(path)
     else:
         path.unlink(missing_ok=True)
+
+
+def configure_docs() -> None:
+    """Keep only the documentation files selected by the answers."""
+    if ANSWERS["public_docs"] != "yes":
+        for path in DOCS_ONLY:
+            remove(path)
+        return
+    Path("mkdocs.yml.jinja").rename("mkdocs.yml")
+    if ANSWERS["docs_theme"] != "custom":
+        for path in CUSTOM_DOCS_ONLY:
+            remove(path)
 
 
 def main() -> None:
@@ -96,9 +115,7 @@ def main() -> None:
     if ANSWERS["ml_pytorch"] != "yes":
         for path in ML_ONLY:
             remove(path)
-    if ANSWERS["public_docs"] != "yes":
-        for path in DOCS_ONLY:
-            remove(path)
+    configure_docs()
     if ANSWERS["license"] == "none":
         Path("LICENSE").unlink()
     if ANSWERS["dataset_registry"] != "yes":

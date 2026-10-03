@@ -8,11 +8,7 @@ description: Short answers to one question each.
 Each guide answers one question. Its code is a file in `docs_src/`, and a
 test runs that file, so the guide stays true.
 
-```{toctree}
-:maxdepth: 1
-
-check-the-install
-{%- if cookiecutter.ml_pytorch == "yes" %}
-repeat-a-run
-{%- endif %}
-```
+- [Check the install](check-the-install.md)
+  {%- if cookiecutter.ml_pytorch == "yes" %}
+- [Repeat a run exactly](repeat-a-run.md)
+  {%- endif %}

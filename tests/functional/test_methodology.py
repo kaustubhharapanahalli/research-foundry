@@ -2,6 +2,7 @@
 
 import tomllib
 from collections.abc import Callable
+from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from typing import Any
 
@@ -100,15 +101,15 @@ def test_agents_md_has_a_local_rules_section(render: Render) -> None:
 
 
 DOCS_FILES = [
-    "docs/conf.py",
     "docs/index.md",
-    "docs/_templates/autosummary/module.rst",
+    "docs/check_reference.py",
     "docs/api/index.md",
     "docs/how-to/index.md",
     "docs/how-to/check-the-install.md",
     "docs_src/check_install.py",
+    ".dev-config/check_frontmatter.py",
     "make/docs.mk",
-    ".readthedocs.yaml",
+    "mkdocs.yml",
     "CODE_OF_CONDUCT.md",
     "CONTRIBUTING.md",
     "SECURITY.md",
@@ -123,8 +124,6 @@ DOCS_ML_FILES = [
 ]
 # Public docs need a typed contact address; it has no default.
 PUBLIC = {"public_docs": "yes", "contact_email": "maintainers@example.org"}
-# Sphinx's own Jinja template: the one rendered file that keeps {{ }}.
-SPHINX_TEMPLATE = "docs/_templates/autosummary/module.rst"
 
 
 def test_public_docs_ship_the_standard_files(render: Render) -> None:
@@ -133,6 +132,51 @@ def test_public_docs_ship_the_standard_files(render: Render) -> None:
         assert (project / name).is_file(), name
     assert "include make/docs.mk" in (project / "Makefile").read_text()
     assert "docs" in _pyproject(project)["dependency-groups"]
+    assert (
+        yaml.safe_load((project / "mkdocs.yml").read_text())["theme"][
+            "palette"
+        ][0]["primary"]
+        == "indigo"
+    )
+
+
+def test_custom_docs_theme_ships_its_assets_and_css(
+    render: Render, tmp_path: Path
+) -> None:
+    custom = render("methodology", docs_theme="custom", **PUBLIC)
+    css = custom / "docs" / "stylesheets" / "extra.css"
+    config = yaml.safe_load((custom / "mkdocs.yml").read_text())
+    assert css.is_file()
+    assert (custom / "docs" / "assets" / "logo.svg").is_file()
+    assert config["extra_css"] == ["stylesheets/extra.css"]
+    assert config["theme"]["logo"] == "assets/logo.svg"
+    assert config["theme"]["favicon"] == "assets/logo.svg"
+    assert config["theme"]["font"] == {"text": "Roboto", "code": "Roboto Mono"}
+    for variable in (
+        "--md-primary-fg-color",
+        "--md-accent-fg-color",
+        "--md-default-bg-color",
+        "--md-default-fg-color",
+        "--md-typeset-a-color",
+        "--md-code-bg-color",
+    ):
+        assert css.read_text().count(variable) == 2
+
+    generic = render(
+        "methodology", out=tmp_path / "generic", docs_theme="generic", **PUBLIC
+    )
+    assert not (generic / "docs" / "stylesheets" / "extra.css").exists()
+    assert not (generic / "docs" / "assets").exists()
+    assert "extra_css" not in yaml.safe_load(
+        (generic / "mkdocs.yml").read_text()
+    )
+
+
+def test_docs_theme_is_ignored_without_public_docs(render: Render) -> None:
+    project = render("methodology", public_docs="no", docs_theme="custom")
+    assert not (project / "mkdocs.yml").exists()
+    assert not (project / "docs" / "stylesheets").exists()
+    assert not (project / "docs" / "assets").exists()
 
 
 def test_no_public_docs_ships_none_of_them(render: Render) -> None:
@@ -156,19 +200,52 @@ def test_plain_public_docs_leave_out_the_pytorch_guides(
         assert not (project / name).exists(), name
     index = (project / "docs" / "index.md").read_text()
     assert "explanation/reproducibility" not in index
-    conf = (project / "docs" / "conf.py").read_text()
-    assert '"torch"' not in conf
+    config = yaml.safe_load((project / "mkdocs.yml").read_text())
+    assert "Explanation" not in config["nav"]
 
 
 def test_public_docs_leave_no_template_syntax(render: Render) -> None:
     project = render("methodology", ml_pytorch="yes", **PUBLIC)
     for path in sorted(project.rglob("*")):
         name = str(path.relative_to(project))
-        if path.is_file() and name != SPHINX_TEMPLATE:
+        if path.is_file():
             assert not LEFTOVER.search(path.read_text()), name
-    template = (project / SPHINX_TEMPLATE).read_text()
-    assert template.startswith("{{ fullname | escape | underline }}")
-    assert template.endswith("{%- endblock %}\n")
+
+
+def test_public_docs_render_no_sphinx_or_read_the_docs(
+    render: Render,
+) -> None:
+    project = render("methodology", **PUBLIC)
+    for path in project.rglob("*"):
+        if path.is_file():
+            text = path.read_text(encoding="utf-8", errors="replace").lower()
+            assert "sphinx" not in text, path.relative_to(project)
+            assert "read the docs" not in text, path.relative_to(project)
+
+
+def test_reference_check_refuses_a_missing_public_module(
+    render: Render,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    project = render("methodology", **PUBLIC)
+    module_path = project / "docs" / "check_reference.py"
+    spec = spec_from_file_location("check_reference", module_path)
+    assert spec and spec.loader
+    module = module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    (tmp_path / "src" / "fake_package").mkdir(parents=True)
+    (tmp_path / "src" / "fake_package" / "__init__.py").write_text("")
+    (tmp_path / "src" / "fake_package" / "missing.py").write_text("")
+    (tmp_path / "docs" / "api").mkdir(parents=True)
+    (tmp_path / "docs" / "api" / "index.md").write_text("::: fake_package\n")
+    monkeypatch.chdir(tmp_path)
+    assert module.main(["fake_package"]) == 1
+    assert capsys.readouterr().out == (
+        "docs/api/index.md: missing ::: fake_package.missing\n"
+    )
 
 
 def test_public_docs_without_a_licence_refuse_to_render(

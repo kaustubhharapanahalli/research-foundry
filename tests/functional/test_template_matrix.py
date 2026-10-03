@@ -29,6 +29,7 @@ def test_only_options_that_change_the_files_are_multiplied(
         "license": ["Apache-2.0", "none"],
         "ml_pytorch": ["yes", "no"],
         "public_docs": ["no", "yes"],
+        "docs_theme": ["generic", "custom"],
         "dataset_registry": ["no", "yes"],
         "run_records": ["no", "yes"],
     }

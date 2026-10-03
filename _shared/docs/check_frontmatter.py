@@ -14,6 +14,7 @@ from pathlib import Path
 import yaml
 
 REQUIRED = ("type", "title", "description", "resource", "tags", "timestamp")
+PUBLIC_REQUIRED = ("title", "description")
 EXEMPT = frozenset(
     {
         "AGENTS.md",
@@ -107,6 +108,21 @@ def problems(path: Path, text: str) -> list[str]:
     return found
 
 
+def public_page_problems(text: str) -> list[str]:
+    """Check that a public page has only its title and description metadata."""
+    try:
+        data = read_frontmatter(text)
+    except FrontmatterError as error:
+        return [str(error)]
+    if data is None:
+        return ["no frontmatter"]
+    found = [f"missing {key}" for key in PUBLIC_REQUIRED if not data.get(key)]
+    unexpected = sorted(set(data) - set(PUBLIC_REQUIRED))
+    if unexpected:
+        found.append(f"unexpected fields: {', '.join(unexpected)}")
+    return found
+
+
 def main(argv: Sequence[str]) -> int:
     """Check every non-exempt Markdown file named in ``argv``.
 
@@ -116,12 +132,32 @@ def main(argv: Sequence[str]) -> int:
     Returns:
         0 when every document passes, 1 otherwise.
     """
+    public_pages = bool(argv and argv[0] == "--public-pages")
+    if public_pages:
+        if len(argv) != 2:
+            print("usage: check_frontmatter.py --public-pages DOCS_DIR")
+            return 2
+        root = Path(argv[1])
+        if not root.is_dir():
+            print(f"{root}: docs directory does not exist")
+            return 1
+        paths = sorted(
+            path for path in root.rglob("*.md") if "adr" not in path.parts
+        )
+    else:
+        paths = [Path(name) for name in argv]
     failed = False
-    for name in argv:
-        path = Path(name)
-        if path.name in EXEMPT or path.suffix != ".md":
+    for path in paths:
+        name = path.as_posix()
+        if (not public_pages and path.name in EXEMPT) or path.suffix != ".md":
             continue
-        for message in problems(path, path.read_text(encoding="utf-8")):
+        text = path.read_text(encoding="utf-8")
+        found = (
+            public_page_problems(text)
+            if public_pages
+            else problems(path, text)
+        )
+        for message in found:
             print(f"{name}: {message}")
             failed = True
     return 1 if failed else 0
