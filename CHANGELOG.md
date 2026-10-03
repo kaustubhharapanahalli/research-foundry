@@ -9,6 +9,14 @@ moved once projects may have been generated from it.
 
 ### Added
 
+- The installable `research-foundry` Python package, with an offline CLI for
+  listing templates and questions, generating projects, checking and applying
+  cruft updates, and installing the maintained skills. Wheels carry all four
+  templates, restore their shared include trees at runtime, and source
+  checkouts remain directly usable.
+- A standard-input/output Model Context Protocol (MCP) server with tools to
+  list and inspect templates, validate a project plan without persistent
+  output, create confirmed projects, and check or apply confirmed updates.
 - Weekly dependency and security maintenance: grouped Dependabot version
   updates, audits of Foundry and every generated heavy variant, reports for
   template pins hidden from Dependabot, public-repository dependency review,

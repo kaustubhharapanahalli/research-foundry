@@ -3,7 +3,7 @@ ifdef PYTHON
 export UV_PYTHON := $(PYTHON)
 endif
 
-PYTEST := uv run pytest -c .dev-config/pytest.ini --rootdir .
+PYTEST := uv run pytest -c .dev-config/pytest.ini --rootdir . tests src/research_foundry --doctest-modules
 
 .PHONY: install lint fmt test test-unit test-functional test-all test-heavy test-heavy-code test-heavy-software test-heavy-paper template-matrix install-skills throwaway free-runner-disk audit audit-generated audit-issue check-pins pins-issue coverage ci
 

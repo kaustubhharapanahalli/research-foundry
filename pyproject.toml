@@ -28,7 +28,11 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "cookiecutter>=2.7.1",
+    "cruft>=2.16.0",
+    "mcp>=2.3.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/kaustubhharapanahalli/research-foundry"
@@ -37,15 +41,36 @@ Issues = "https://github.com/kaustubhharapanahalli/research-foundry/issues"
 Changelog = "https://github.com/kaustubhharapanahalli/research-foundry/blob/main/CHANGELOG.md"
 Documentation = "https://kaustubhharapanahalli.me/research-foundry/"
 
-[tool.uv]
-# The repository holds templates, not an importable package.
-package = false
+[project.scripts]
+research-foundry = "research_foundry.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/research_foundry"]
+exclude = [
+    "methodology/templates",
+    "workspace/templates",
+    "paper/templates",
+    "software/templates",
+]
+
+# The templates stay at the repository root, so `cruft create <url>
+# --directory <template>` keeps working; the wheel carries the same tree.
+[tool.hatch.build.targets.wheel.force-include]
+"cookiecutter.json" = "research_foundry/templates/cookiecutter.json"
+"_shared" = "research_foundry/templates/_shared"
+"methodology" = "research_foundry/templates/methodology"
+"workspace" = "research_foundry/templates/workspace"
+"paper" = "research_foundry/templates/paper"
+"software" = "research_foundry/templates/software"
+"skills" = "research_foundry/skills"
 
 [dependency-groups]
 dev = [
     "black>=26.5.1",
-    "cookiecutter>=2.7.1",
-    "cruft>=2.16.0",
     "flake8>=7.4.1",
     "isort>=9.0.2",
     "mypy>=2.4.0",
