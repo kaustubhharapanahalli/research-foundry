@@ -69,9 +69,29 @@ The templates encode written standards, and the skills apply them:
 
 ## Using a template
 
-Generate a project with cruft rather than plain cookiecutter. cruft records
-which template and commit the project came from, so later changes to the
-template can be brought in:
+Generate a project non-interactively from the packaged templates:
+
+```bash
+uvx research-foundry new <template>
+```
+
+To install the command first instead:
+
+```bash
+pip install research-foundry
+research-foundry new <template>
+```
+
+Use `research-foundry templates` to list the template names and
+`research-foundry questions <template>` to inspect their answers. Every new
+project records its template release for later checks and updates:
+
+```bash
+research-foundry check <project-path>
+research-foundry update <project-path>
+```
+
+As an alternative, cruft can generate directly from the public repository:
 
 ```bash
 uvx cruft create https://github.com/kaustubhharapanahalli/research-foundry --directory methodology
@@ -89,6 +109,19 @@ Plain cookiecutter works too, and asks which template you want:
 ```bash
 uvx cookiecutter https://github.com/kaustubhharapanahalli/research-foundry
 ```
+
+## MCP server
+
+Run the Model Context Protocol (MCP) server over standard input and output:
+
+```bash
+research-foundry mcp
+```
+
+It exposes `list_templates`, `describe_questions`, `plan_project`,
+`create_project`, `check_project` and `update_project`. Planning renders only
+inside a temporary directory. Creation and update refuse to write until their
+`confirm` argument is `true`.
 
 ## How the shared base works
 

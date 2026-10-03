@@ -26,7 +26,6 @@ step logs and a report (``report.md``, ``report.json``) stay in
 from __future__ import annotations
 
 import argparse
-import contextlib
 import itertools
 import json
 import os
@@ -35,12 +34,11 @@ import subprocess
 import sys
 import tempfile
 import time
-from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from cookiecutter.exceptions import FailedHookException
-from cookiecutter.main import cookiecutter
+from research_foundry.templates import HookRefusal, hook_reason, plan_project
 from tools.throwaway import ROOT, TEMPLATES, generate, snapshot
 
 __all__ = [
@@ -118,61 +116,20 @@ def choice_options(source: Path, template: str) -> dict[str, list[str]]:
     }
 
 
-@contextlib.contextmanager
-def _stderr_to(path: Path) -> Iterator[None]:
-    """Send this process's stderr, and its children's, to ``path``.
-
-    A hook runs as a child process and writes its reason to the inherited
-    stderr, so only a file-descriptor redirect catches it.
-    """
-    sys.stderr.flush()
-    saved = os.dup(2)
-    with path.open("w") as sink:
-        os.dup2(sink.fileno(), 2)
-        try:
-            yield
-        finally:
-            sys.stderr.flush()
-            os.dup2(saved, 2)
-            os.close(saved)
-
-
-def hook_reason(text: str) -> str:
-    """The hook's own words: every line before cookiecutter's "Stopping"."""
-    said = []
-    for line in text.splitlines():
-        if line.startswith("Stopping generation"):
-            break
-        if line.strip():
-            said.append(line.strip())
-    return " ".join(said) or "refused by a generation hook"
-
-
 def render(
     source: Path, template: str, answers: Mapping[str, str], into: Path
 ) -> frozenset[str] | str:
     """The files one combination makes, or the hook's reason for refusal."""
-    out = Path(tempfile.mkdtemp(dir=into))
-    captured = out / "stderr.txt"
+    _ = into
     try:
-        with _stderr_to(captured):
-            project = cookiecutter(
-                str(source),
-                directory=template,
-                no_input=True,
-                output_dir=str(out / "project"),
-                extra_context={**BASE_ANSWERS.get(template, {}), **answers},
-            )
-    except FailedHookException:
-        reason = hook_reason(captured.read_text())
-        shutil.rmtree(out)
-        return reason
-    root = Path(project)
-    files = frozenset(
-        str(p.relative_to(root)) for p in root.rglob("*") if p.is_file()
-    )
-    shutil.rmtree(out)
-    return files
+        files = plan_project(
+            template,
+            {**BASE_ANSWERS.get(template, {}), **answers},
+            source=source,
+        )
+    except HookRefusal as error:
+        return str(error)
+    return frozenset(files)
 
 
 def tree_options(

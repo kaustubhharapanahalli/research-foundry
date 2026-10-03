@@ -20,7 +20,6 @@ outside ``--into`` is written; deleting that directory removes it all.
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import shutil
 import subprocess
@@ -30,6 +29,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from cruft import create
+from research_foundry.templates import asked_from_json
 from tools.variants import VARIANTS
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -86,7 +86,7 @@ def show(source: Path, ref: str, path: str) -> str:
 def asked(source: Path, template: str, ref: str | None) -> set[str]:
     """Return the answers ``template`` asks at ``ref`` in ``source``."""
     spec = show(source, ref or "HEAD", f"{template}/cookiecutter.json")
-    return {name for name in json.loads(spec) if not name.startswith("_")}
+    return asked_from_json(spec)
 
 
 def generate(
