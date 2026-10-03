@@ -34,11 +34,17 @@ import subprocess
 import sys
 import tempfile
 import time
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from research_foundry.templates import HookRefusal, hook_reason, plan_project
+from research_foundry.templates import (
+    HookRefusal,
+    hook_reason,
+    plan_project,
+    write_cookiecutter_config,
+)
 from tools.throwaway import ROOT, TEMPLATES, generate, snapshot
 
 __all__ = [
@@ -189,6 +195,28 @@ def _run(argv: Sequence[str], cwd: Path) -> subprocess.CompletedProcess[str]:
     )
 
 
+@contextmanager
+def _configured_cookiecutter(workdir: Path) -> Iterator[None]:
+    """Set Cookiecutter's config environment for one matrix run.
+
+    Args:
+        workdir: The directory holding the isolated config and run state.
+
+    Yields:
+        Control while subprocesses inherit the isolated config path.
+    """
+    config = write_cookiecutter_config(workdir)
+    previous = os.environ.get("COOKIECUTTER_CONFIG")
+    os.environ["COOKIECUTTER_CONFIG"] = str(config)
+    try:
+        yield
+    finally:
+        if previous is None:
+            os.environ.pop("COOKIECUTTER_CONFIG", None)
+        else:
+            os.environ["COOKIECUTTER_CONFIG"] = previous
+
+
 def prepare_source(work: Path) -> Path:
     """Snapshot this tree as ``matrix-base``; commit a shared change on top."""
     source = snapshot(ROOT, work / "foundry", GIT_ENV)
@@ -291,23 +319,24 @@ def run_variant(  # pylint: disable=too-many-arguments
     into = Path(tempfile.mkdtemp(prefix="variant-", dir=work))
     project = into / "unmade"
     try:
-        answers = {**BASE_ANSWERS.get(variant.template, {})}
-        answers.update(variant.answers)
-        project = make(
-            variant.template,
-            answers,
-            into=into,
-            source=source,
-            ref="matrix-base",
-        )
-        result.steps["generate"] = "passed"
-        for argv in (
-            ["git", "init", "-q"],
-            ["git", "add", "-A"],
-            ["git", "commit", "-qm", "generated"],
-        ):
-            run(argv, project)
-        _steps(variant, project, logs, run, result)
+        with _configured_cookiecutter(into):
+            answers = {**BASE_ANSWERS.get(variant.template, {})}
+            answers.update(variant.answers)
+            project = make(
+                variant.template,
+                answers,
+                into=into,
+                source=source,
+                ref="matrix-base",
+            )
+            result.steps["generate"] = "passed"
+            for argv in (
+                ["git", "init", "-q"],
+                ["git", "add", "-A"],
+                ["git", "commit", "-qm", "generated"],
+            ):
+                run(argv, project)
+            _steps(variant, project, logs, run, result)
     except Exception as exc:  # pylint: disable=broad-exception-caught
         result.steps.setdefault("generate", "failed")
         result.failure = result.failure or f"{type(exc).__name__}: {exc}"

@@ -5,6 +5,8 @@ these are fast. The combinations are found by real renders, and the
 throwaway fixture runs the real cruft against a snapshot of this tree.
 """
 
+import json
+import os
 import subprocess
 from collections.abc import Sequence
 from pathlib import Path
@@ -94,6 +96,86 @@ def test_a_passing_variant_runs_every_step_and_is_deleted(
     assert ("make", "ci") in run.calls
     assert not list(tmp_path.glob("variant-*")), "the project was kept"
     assert (logs / f"{VARIANT.name}.ci.log").read_text() == "outerr"
+
+
+@pytest.mark.unit
+def test_variant_runner_exports_a_workdir_cookiecutter_config(
+    tmp_path: Path,
+) -> None:
+    configs: list[tuple[Path, dict[str, str]]] = []
+
+    def run(
+        argv: Sequence[str], cwd: Path
+    ) -> subprocess.CompletedProcess[str]:
+        del cwd
+        config = Path(os.environ["COOKIECUTTER_CONFIG"])
+        configs.append(
+            (config, json.loads(config.read_text(encoding="utf-8")))
+        )
+        if tuple(argv[:2]) == ("git", "status"):
+            return subprocess.CompletedProcess([], 0, "", "")
+        return _done()
+
+    result = matrix.run_variant(
+        VARIANT,
+        tmp_path,
+        tmp_path,
+        tmp_path,
+        run=run,
+        make=_fake_make(),
+    )
+    assert result.passed
+    assert configs
+    config_paths = {path for path, _ in configs}
+    assert len(config_paths) == 1
+    config_path = config_paths.pop()
+    assert config_path.parent.parent == tmp_path
+    config = configs[0][1]
+    assert config["cookiecutters_dir"] == str(
+        config_path.parent / "cookiecutters"
+    )
+    assert config["replay_dir"] == str(config_path.parent / "replay")
+
+
+@pytest.mark.unit
+def test_matrix_subprocesses_receive_cookiecutter_config(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    captured: list[tuple[Path, dict[str, str]]] = []
+
+    def fake_subprocess_run(
+        *args: object, **kwargs: object
+    ) -> subprocess.CompletedProcess[str]:
+        environment = kwargs["env"]
+        assert isinstance(environment, dict)
+        config_path = Path(environment["COOKIECUTTER_CONFIG"])
+        captured.append(
+            (
+                config_path,
+                json.loads(config_path.read_text(encoding="utf-8")),
+            )
+        )
+        command = args[0]
+        if isinstance(command, list) and command[:2] == ["git", "status"]:
+            return subprocess.CompletedProcess([], 0, "", "")
+        return _done()
+
+    monkeypatch.setattr(subprocess, "run", fake_subprocess_run)
+    result = matrix.run_variant(
+        VARIANT, tmp_path, tmp_path, tmp_path, make=_fake_make()
+    )
+
+    assert result.passed
+    assert captured
+    config_paths = {path for path, _ in captured}
+    assert len(config_paths) == 1
+    config_path = config_paths.pop()
+    assert config_path.parent.parent == tmp_path
+    config = captured[0][1]
+    assert config["cookiecutters_dir"] == str(
+        config_path.parent / "cookiecutters"
+    )
+    assert config["replay_dir"] == str(config_path.parent / "replay")
 
 
 @pytest.mark.unit

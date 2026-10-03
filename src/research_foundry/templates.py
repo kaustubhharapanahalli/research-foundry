@@ -48,6 +48,39 @@ class HookRefusal(FoundryError):
     """
 
 
+def write_cookiecutter_config(workdir: Path) -> Path:
+    """Write a Cookiecutter config whose mutable paths stay inside ``workdir``.
+
+    Args:
+        workdir: The temporary directory containing this Cookiecutter run.
+
+    Returns:
+        The config file path for Cookiecutter or cruft.
+
+    Examples:
+        >>> import tempfile
+        >>> with tempfile.TemporaryDirectory() as work:
+        ...     config = write_cookiecutter_config(Path(work))
+        ...     settings = json.loads(config.read_text())
+        ...     Path(settings["replay_dir"]).parent == Path(work).resolve()
+        True
+    """
+    root = workdir.resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    config = root / "cookiecutter-config.json"
+    config.write_text(
+        json.dumps(
+            {
+                "default_context": {},
+                "cookiecutters_dir": str(root / "cookiecutters"),
+                "replay_dir": str(root / "replay"),
+            }
+        ),
+        encoding="utf-8",
+    )
+    return config
+
+
 @dataclass(frozen=True)
 class Template:
     """One public project template.
@@ -534,18 +567,8 @@ def create_project(
     before = set(output_dir.iterdir())
     with prepared_templates(root) as work:
         captured = work / "hook-stderr.txt"
-        config = work / "cookiecutter-config.json"
-        config.write_text(
-            json.dumps(
-                {
-                    "default_context": {},
-                    "cookiecutters_dir": str(work / "cookiecutters"),
-                    "replay_dir": str(work / "replay"),
-                }
-            ),
-            encoding="utf-8",
-        )
         try:
+            config = write_cookiecutter_config(work)
             with _captured_stderr(captured):
                 rendered = cookiecutter(
                     str(work),
@@ -625,4 +648,5 @@ __all__ = [
     "repository_url",
     "template_root",
     "validate_answers",
+    "write_cookiecutter_config",
 ]

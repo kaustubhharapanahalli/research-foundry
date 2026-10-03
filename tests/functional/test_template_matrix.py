@@ -6,6 +6,9 @@ orchestration's own tests, with fakes, are in tests/unit.
 """
 
 import json
+import os
+import subprocess
+from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
@@ -95,6 +98,72 @@ def test_the_throwaway_command_takes_a_variant_or_a_template(
     printed = Path(capsys.readouterr().out.strip())
     assert printed.parent == tmp_path / "a"
     assert "methodology-plain" in VARIANTS
+
+
+@pytest.mark.functional
+def test_variant_generate_and_update_keep_cookiecutter_files_out_of_home(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    source = matrix.prepare_source(tmp_path / "source-work")
+
+    def run(
+        argv: Sequence[str], cwd: Path
+    ) -> subprocess.CompletedProcess[str]:
+        command = list(argv)
+        if command[:1] == ["git"]:
+            return subprocess.run(
+                command,
+                cwd=cwd,
+                env={**os.environ, **GIT_ENV},
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        if command[:4] == ["uvx", "--from", "cruft==2.16.0", "cruft"]:
+            return subprocess.run(
+                ["cruft", *command[4:]],
+                cwd=cwd,
+                env=os.environ.copy(),
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    result = matrix.run_variant(
+        matrix.Variant("workspace", ()),
+        source,
+        tmp_path,
+        tmp_path,
+        run=run,
+        make=throwaway.generate,
+    )
+
+    assert result.passed, result.failure
+    assert result.steps["generate"] == "passed"
+    assert result.steps["update"] == "passed"
+    assert not list(home.iterdir())
+
+
+@pytest.mark.functional
+def test_a_throwaway_leaves_only_the_project_and_nothing_in_home(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    source = matrix.prepare_source(tmp_path / "source-work")
+    out = tmp_path / "out"
+
+    project = throwaway.generate(
+        "workspace", {}, into=out, source=source, ref="matrix-base"
+    )
+
+    assert list(out.iterdir()) == [project]
+    assert not list(home.iterdir())
 
 
 @pytest.mark.functional

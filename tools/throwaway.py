@@ -29,7 +29,10 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from cruft import create
-from research_foundry.templates import asked_from_json
+from research_foundry.templates import (
+    asked_from_json,
+    write_cookiecutter_config,
+)
 from tools.variants import VARIANTS
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -124,17 +127,21 @@ def generate(
             " --working-tree"
         )
     into.mkdir(parents=True, exist_ok=True)
-    return Path(
-        create(
-            str(source),
-            output_dir=into,
-            directory=template,
-            checkout=ref,
-            no_input=True,
-            extra_context=dict(answers),
-            default_config=True,
+    # Cookiecutter's replay and clone directories go in a scratch directory,
+    # neither in the user's home nor beside the project in ``into``.
+    with tempfile.TemporaryDirectory(prefix="cookiecutter-") as scratch:
+        config = write_cookiecutter_config(Path(scratch))
+        return Path(
+            create(
+                str(source),
+                output_dir=into,
+                config_file=config,
+                directory=template,
+                checkout=ref,
+                no_input=True,
+                extra_context=dict(answers),
+            )
         )
-    )
 
 
 def _answers(pairs: Sequence[str]) -> dict[str, str]:
