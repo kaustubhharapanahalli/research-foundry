@@ -14,6 +14,8 @@ moved once projects may have been generated from it.
   architecture-decision guides.
 - Named `make typecheck`, `make docstrings` and `make doctest` gates, plus
   `make docs`; continuous integration now builds the site.
+- The documentation site is published to GitHub Pages on every push to
+  `main`, at <https://research-foundry.kaustubhharapanahalli.me/>.
 
 ### Changed
 

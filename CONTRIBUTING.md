@@ -29,6 +29,10 @@ Pass `PYTHON=3.12` to a target to select another interpreter, for example
 `make docstrings` and `make doctest` run the named typing, docstring and
 doctest gates.
 
+Every push to `main` builds the site again and publishes it to GitHub Pages at
+<https://research-foundry.kaustubhharapanahalli.me/>. The deploy job refuses to
+run unless GitHub reports the repository as public.
+
 ## Make a change
 
 Write tests first. Never weaken a test to make a change pass. Follow the rules in
