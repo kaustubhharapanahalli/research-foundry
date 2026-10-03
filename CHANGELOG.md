@@ -7,6 +7,14 @@ moved once projects may have been generated from it.
 
 ## [Unreleased]
 
+### Fixed
+
+- The weekly pin report reads GitHub Container Registry tags with an anonymous
+  pull token and matches the current image flavour, rather than treating image
+  tags as GitHub releases.
+- The template matrix and throwaway generator keep Cookiecutter replay and
+  checkout directories in the run's work directory instead of the user's home.
+
 ## [0.1.0rc1] - 2026-10-02
 
 ### Added

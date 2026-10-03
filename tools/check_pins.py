@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parent.parent
 TEMPLATES = ("methodology", "workspace", "paper", "software")
@@ -40,7 +40,7 @@ PRE_COMMIT_PIN = re.compile(
     r"rev:\s*[^\s#]+(?:\s*#\s*frozen:\s*(?P<version>[^\s]+))?",
     re.DOTALL,
 )
-Fetch = Callable[[str], Mapping[str, Any]]
+Fetch = Callable[..., Mapping[str, Any]]
 
 
 @dataclass(frozen=True)
@@ -250,9 +250,16 @@ def collect_pins(root: Path = ROOT) -> list[Pin]:
     return sorted(pins, key=lambda pin: (str(pin.file), pin.name, pin.current))
 
 
-def _fetch_json(url: str) -> Mapping[str, Any]:
+def _fetch_json(
+    url: str, headers: Mapping[str, str] | None = None
+) -> Mapping[str, Any]:
     """Fetch one registry response as JSON."""
-    with urlopen(url, timeout=30) as response:  # noqa: S310 - fixed registries
+    request: str | Request = (
+        Request(url, headers=dict(headers)) if headers else url
+    )
+    with urlopen(
+        request, timeout=30
+    ) as response:  # noqa: S310 - fixed registries
         value: Mapping[str, Any] = json.load(response)
     return value
 
@@ -265,27 +272,12 @@ def _version_parts(version: str) -> tuple[int, ...]:
     return tuple(int(part) for part in match.group(1).split("."))
 
 
-def _docker_tag(pin: Pin, fetch: Fetch) -> str:
-    """Return the newest Docker tag with the current tag's flavour."""
-    if pin.name.startswith("ghcr.io/"):
-        repository = pin.name.removeprefix("ghcr.io/")
-        url = f"https://api.github.com/repos/{repository}/releases/latest"
-        release = fetch(url)
-        return str(release["tag_name"])
-    repository = pin.name if "/" in pin.name else f"library/{pin.name}"
-    response = fetch(
-        f"https://hub.docker.com/v2/repositories/{repository}/tags"
-        "?page_size=100&ordering=last_updated"
-    )
-    current = re.match(r"^(v?\d+(?:\.\d+)*)(.*)$", pin.current)
+def _newest_docker_tag(current_tag: str, names: Sequence[str]) -> str:
+    """Choose the newest registry tag sharing the current tag's flavour."""
+    current = re.match(r"^(v?\d+(?:\.\d+)*)(.*)$", current_tag)
     if current is None:
-        raise ValueError(f"cannot compare Docker tag {pin.current!r}")
+        raise ValueError(f"cannot compare Docker tag {current_tag!r}")
     suffix = current.group(2)
-    names = [
-        str(item["name"])
-        for item in response.get("results", [])
-        if isinstance(item, Mapping) and "name" in item
-    ]
     candidates = [
         name
         for name in names
@@ -295,6 +287,37 @@ def _docker_tag(pin: Pin, fetch: Fetch) -> str:
     if not candidates:
         raise ValueError(f"registry returned no tags with flavour {suffix!r}")
     return max(candidates, key=_version_parts)
+
+
+def _docker_tag(pin: Pin, fetch: Fetch) -> str:
+    """Return the newest Docker tag with the current tag's flavour."""
+    if pin.name.startswith("ghcr.io/"):
+        repository = pin.name.removeprefix("ghcr.io/")
+        token_response = fetch(
+            f"https://ghcr.io/token?scope=repository:{repository}:pull"
+        )
+        token = str(token_response["token"])
+        response = fetch(
+            f"https://ghcr.io/v2/{repository}/tags/list",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        tags = response.get("tags")
+        if not isinstance(tags, list):
+            raise ValueError("registry returned no tag list")
+        return _newest_docker_tag(
+            pin.current, [str(tag) for tag in tags if isinstance(tag, str)]
+        )
+    repository = pin.name if "/" in pin.name else f"library/{pin.name}"
+    response = fetch(
+        f"https://hub.docker.com/v2/repositories/{repository}/tags"
+        "?page_size=100&ordering=last_updated"
+    )
+    names = [
+        str(item["name"])
+        for item in response.get("results", [])
+        if isinstance(item, Mapping) and "name" in item
+    ]
+    return _newest_docker_tag(pin.current, names)
 
 
 def _newest(pin: Pin, fetch: Fetch) -> str:

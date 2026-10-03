@@ -7,6 +7,7 @@ import json
 from email.message import Message
 from pathlib import Path
 from urllib.error import HTTPError
+from urllib.request import Request
 
 import pytest
 from tools import check_pins
@@ -257,15 +258,28 @@ def test_registry_responses_are_fetched_and_rendered(
                 "ignored",
             ]
         },
-        "api.github.com/repos/example/tool": {"tag_name": "v3.1.0"},
+        "ghcr.io/token?": {"token": "anonymous-token"},
+        "ghcr.io/v2/example/tool/tags/list": {
+            "tags": ["v3.0.0", "v3.1.0", "latest"]
+        },
         "api.github.com/repos/example/hooks": {"tag_name": "v4.1.0"},
     }
     requested: list[str] = []
+    authorizations: list[str] = []
 
-    def fake_urlopen(url: str, timeout: int) -> io.BytesIO:
+    def fake_urlopen(url: str | Request, timeout: int) -> io.BytesIO:
         assert timeout == 30
-        requested.append(url)
-        payload = next(value for key, value in responses.items() if key in url)
+        address = url.full_url if isinstance(url, Request) else url
+        requested.append(address)
+        if isinstance(url, Request):
+            authorizations.extend(
+                value
+                for key, value in url.header_items()
+                if key.lower() == "authorization"
+            )
+        payload = next(
+            value for key, value in responses.items() if key in address
+        )
         return io.BytesIO(json.dumps(payload).encode())
 
     monkeypatch.setattr(check_pins, "urlopen", fake_urlopen)
@@ -278,6 +292,87 @@ def test_registry_responses_are_fetched_and_rendered(
     assert "| v3.0.0 | v3.1.0 |" in report
     assert "| v4.0.0 | v4.1.0 |" in report
     assert any("%40scope%2Fpkg" in url for url in requested)
+    assert authorizations == ["Bearer anonymous-token"]
+
+
+def test_ghcr_tags_use_a_pull_token_and_match_the_current_flavour(
+    tmp_path: Path,
+) -> None:
+    _write(
+        tmp_path / "software/{{cookiecutter.repo_name}}/compose.yaml",
+        "image: ghcr.io/example/tool:v3.0.0-alpine\n",
+    )
+    calls: list[tuple[str, dict[str, str] | None]] = []
+
+    def fetch(
+        url: str, headers: dict[str, str] | None = None
+    ) -> dict[str, object]:
+        if url == (
+            "https://ghcr.io/token?" "scope=repository:example/tool:pull"
+        ):
+            calls.append((url, headers))
+            return {"token": "anonymous-token"}
+        if url == "https://ghcr.io/v2/example/tool/tags/list":
+            calls.append((url, headers))
+            assert headers == {"Authorization": "Bearer anonymous-token"}
+            return {
+                "tags": [
+                    "v3.0.0",
+                    "v3.1.0-alpine",
+                    "v3.2.0-debug",
+                    "latest",
+                ]
+            }
+        return {
+            "version": "1.0.0",
+            "peerDependencies": {"typescript": "<7", "eslint": "^9"},
+        }
+
+    report = check_pins.render_report(tmp_path, fetch)
+
+    assert "| v3.0.0-alpine | v3.1.0-alpine |" in report
+    assert calls == [
+        (
+            "https://ghcr.io/token?scope=repository:example/tool:pull",
+            None,
+        ),
+        (
+            "https://ghcr.io/v2/example/tool/tags/list",
+            {"Authorization": "Bearer anonymous-token"},
+        ),
+    ]
+
+
+def test_ghcr_registry_error_stays_in_its_row_and_report_continues(
+    tmp_path: Path,
+) -> None:
+    _write(
+        tmp_path / "software/{{cookiecutter.repo_name}}/compose.yaml",
+        "image: ghcr.io/example/tool:v3.0.0-alpine\n",
+    )
+    _write(
+        tmp_path / "methodology/{{cookiecutter.repo_name}}/pyproject.toml",
+        'dependencies = ["numpy>=2.5.3"]\n',
+    )
+
+    def unavailable(
+        url: str, headers: dict[str, str] | None = None
+    ) -> dict[str, object]:
+        del headers
+        if url.startswith("https://ghcr.io/token?"):
+            return {"token": "anonymous-token"}
+        if url.startswith("https://ghcr.io/v2/"):
+            raise OSError("registry unavailable")
+        if url.startswith("https://pypi.org/"):
+            return {"info": {"version": "2.6.0"}}
+        return {"version": "1.0.0"}
+
+    report = check_pins.render_report(tmp_path, unavailable)
+
+    ghcr_row = next(line for line in report.splitlines() if "ghcr.io" in line)
+    assert "ERROR: registry unavailable" in ghcr_row
+    assert "| 2.5.3 | 2.6.0 |" in report
+    assert "## Held majors (ADR 0003)" in report
 
 
 def test_http_error_from_registry_is_written_in_report(
