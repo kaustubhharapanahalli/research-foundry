@@ -1,0 +1,33 @@
+# The only definition of each check. `make lint` runs this file; CI runs make.
+minimum_pre_commit_version: "4.4.0"
+
+# Vendored baselines are copied as they are, never reformatted.
+exclude: ^baselines/
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # frozen: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+      - id: detect-private-key
+
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier (Markdown, YAML, JSON)
+        # pre-commit builds its own Node environment, so CI needs no Node.
+        entry: prettier --write --log-level warn
+        language: node
+        additional_dependencies: ["prettier@3.9.9"]
+        types_or: [markdown, yaml, json]
+      - id: okf-frontmatter
+        name: OKF frontmatter on every document
+        entry: python .dev-config/check_frontmatter.py
+        language: python
+        additional_dependencies: ["pyyaml==6.0.3"]
+        types: [markdown]

@@ -1,0 +1,7 @@
+# Only pyproject.toml, uv.lock and backend/ reach the image.
+*
+!pyproject.toml
+!uv.lock
+!backend/
+**/__pycache__
+**/tests/

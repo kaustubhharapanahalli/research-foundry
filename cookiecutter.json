@@ -1,0 +1,24 @@
+{
+  "templates": {
+    "methodology": {
+      "path": "./methodology",
+      "title": "Methodology",
+      "description": "The code repository: a Python package with optional deep-learning support."
+    },
+    "workspace": {
+      "path": "./workspace",
+      "title": "Workspace",
+      "description": "Research notes, theory, literature reviews and experiment configs."
+    },
+    "paper": {
+      "path": "./paper",
+      "title": "Paper",
+      "description": "The LaTeX paper, with Overleaf as its main source."
+    },
+    "software": {
+      "path": "./software",
+      "title": "Software",
+      "description": "An application, with optional backend, frontend, proxy and gateway components."
+    }
+  }
+}

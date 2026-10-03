@@ -1,0 +1,38 @@
+version: 2
+updates:
+  # Actions are pinned by commit SHA; Dependabot rewrites the SHA and its
+  # version comment together. It raises no security alerts for SHA pins.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: pre-commit
+    directory: /
+    schedule:
+      interval: weekly
+{%- if cookiecutter.get("backend_django") == "yes" %}
+  # Images are pinned by digest; Dependabot updates the tag and digest.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+{%- endif %}
+{%- if cookiecutter.get("frontend_nextjs") == "yes" %}
+  # Next.js publishes security releases monthly.
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /frontend
+    schedule:
+      interval: weekly
+{%- endif %}

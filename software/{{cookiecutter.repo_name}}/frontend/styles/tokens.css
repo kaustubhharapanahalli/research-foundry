@@ -1,0 +1,23 @@
+/* The one file with raw colours: primitives, then the semantic names
+   components use. A light theme later is one [data-theme] block here. */
+:root {
+  --stone-50: #f7f7f5;
+  --stone-200: #d6d3cd;
+  --stone-700: #3f3c37;
+  --stone-900: #1c1a17;
+  --green-700: #1d6b3a;
+  --red-700: #a3231c;
+
+  --color-bg: var(--stone-50);
+  --color-panel: #ffffff;
+  --color-line: var(--stone-200);
+  --color-text: var(--stone-900);
+  --color-muted: var(--stone-700);
+  --color-ok: var(--green-700);
+  --color-danger: var(--red-700);
+
+  --font-sans: system-ui, sans-serif;
+  --space-2: 0.5rem;
+  --space-4: 1rem;
+  --radius-2: 0.5rem;
+}

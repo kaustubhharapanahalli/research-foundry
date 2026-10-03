@@ -1,0 +1,85 @@
+version: 2
+updates:
+  # Actions are pinned by commit SHA; Dependabot rewrites the SHA and its
+  # version comment together. It raises no security alerts for SHA pins.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [dependencies]
+    open-pull-requests-limit: 5
+    groups:
+      github-actions-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [dependencies]
+    open-pull-requests-limit: 5
+    groups:
+      uv-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+  - package-ecosystem: pre-commit
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [dependencies]
+    open-pull-requests-limit: 5
+    groups:
+      pre-commit-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+  # The pins inside the software template itself, so a generated project
+  # starts current. Files holding Jinja (compose.yaml, pyproject.toml)
+  # cannot be parsed, so their pins are raised by hand: see ADR 0004.
+  # Dependabot reads a literal {{...}} path as a brace glob, which directory
+  # refuses. directories accepts globs, where * matches the one templated
+  # directory below software/.
+  - package-ecosystem: npm
+    directories: ["/software/*/frontend"]
+    schedule:
+      interval: weekly
+    labels: [dependencies]
+    open-pull-requests-limit: 5
+    groups:
+      frontend:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: [minor, patch]
+    # These majors are held by the frontend component and pins decision
+    # (ADR 0003) until each blocker accepts them. `make check-pins` reports
+    # each blocker's latest requirement weekly.
+    ignore:
+      - dependency-name: vitest
+        update-types: [version-update:semver-major]
+      - dependency-name: "@vitest/coverage-v8"
+        update-types: [version-update:semver-major]
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+      - dependency-name: eslint
+        update-types: [version-update:semver-major]
+  - package-ecosystem: docker
+    directories:
+      - "/software/*"
+      - "/software/*/frontend"
+    # The Python image moves only within its minor line (3.14.x). A new
+    # minor, its release candidates included, is a deliberate change to the
+    # template's python_version, made by hand: Dependabot otherwise offers
+    # tags such as 3.15.0rc2 as a minor update.
+    ignore:
+      - dependency-name: python
+        update-types:
+          - version-update:semver-minor
+          - version-update:semver-major
+    schedule:
+      interval: weekly
+    labels: [dependencies]
+    open-pull-requests-limit: 5
+    groups:
+      docker-minor-patch:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: [minor, patch]

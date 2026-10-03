@@ -1,0 +1,21 @@
+{
+  "project_name": "My Project",
+  "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '-') }}",
+  "repo_base": "{{ cookiecutter.project_slug }}",
+  "repo_name": "{{ cookiecutter.repo_base }}-paper",
+  "paper_title": "{{ cookiecutter.project_name }}",
+  "venue": ["iclr", "neurips", "article"],
+  "venue_year": "2027",
+  "github_mirror": ["no", "yes"],
+  "python_version": "3.14",
+  "_python_floor": "3.12",
+  "_template_kind": "paper",
+  "__prompts__": {
+    "project_name": "Project name, as people write it",
+    "project_slug": "Project slug (the board label and session names use it)",
+    "repo_base": "Repository base name (may differ from the slug)",
+    "venue": "Venue style (article is a plain preprint layout)",
+    "venue_year": "Venue year (the style kit is per year)",
+    "github_mirror": "Also mirror to GitHub, with CI? (Overleaf stays the main source)"
+  }
+}

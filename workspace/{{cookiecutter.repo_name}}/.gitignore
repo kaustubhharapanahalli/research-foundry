@@ -1,0 +1,12 @@
+{% include "base/gitignore" %}
+# Run output. Each batch's ACCEPTED.md stays tracked: it records the decision.
+results/**
+!results/.gitkeep
+!results/**/
+!results/**/ACCEPTED.md
+logs/
+*.db
+
+# Baselines keep their own environments and run output out of git.
+baselines/*/.venv/
+baselines/*/runs/

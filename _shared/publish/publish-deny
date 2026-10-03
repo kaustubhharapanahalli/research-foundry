@@ -1,0 +1,9 @@
+# Patterns `make publish` refuses in the public export, one regular
+# expression per line, matched case-insensitively. This file stays in the
+# private repository: it is never exported, since it names the private items.
+#
+# Overleaf project IDs and home paths are refused without a line here. Add
+# what only this project knows (ADR 0007):
+# lab hostnames, the cluster account group and QOS, the lab's GitHub
+# organisation and board numbers, advisor names, and the titles of charters,
+# theory and papers not yet published.

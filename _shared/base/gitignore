@@ -1,0 +1,31 @@
+# Secrets: every .env variant except the example.
+.env
+.env.*
+!.env.example
+
+# Agent process material, never committed (the .work/ rule).
+.work/
+.agent-state/
+journal.md
+
+# What the research tools write locally: the knowledge graph, and the
+# venue check's marker.
+graphify-out/
+.venue-check
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build output
+build/
+dist/
+
+# Operating system
+.DS_Store

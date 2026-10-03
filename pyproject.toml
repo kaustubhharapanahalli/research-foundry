@@ -1,0 +1,60 @@
+[project]
+name = "research-foundry"
+version = "0.1.0"
+description = "Cookiecutter templates for every kind of repository a research project needs, kept current with cruft."
+readme = "README.md"
+license = "Apache-2.0"
+authors = [{ name = "Kaustubh Harapanahalli" }]
+keywords = [
+    "cookiecutter",
+    "cruft",
+    "research",
+    "templates",
+    "reproducibility",
+    "machine-learning",
+    "latex",
+    "django",
+    "nextjs",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Scientific/Engineering",
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/kaustubhharapanahalli/research-foundry"
+Source = "https://github.com/kaustubhharapanahalli/research-foundry"
+Issues = "https://github.com/kaustubhharapanahalli/research-foundry/issues"
+Changelog = "https://github.com/kaustubhharapanahalli/research-foundry/blob/main/CHANGELOG.md"
+Documentation = "https://kaustubhharapanahalli.me/research-foundry/"
+
+[tool.uv]
+# The repository holds templates, not an importable package.
+package = false
+
+[dependency-groups]
+dev = [
+    "black>=26.5.1",
+    "cookiecutter>=2.7.1",
+    "cruft>=2.16.0",
+    "flake8>=7.4.1",
+    "isort>=9.0.2",
+    "mypy>=2.4.0",
+    "pip-audit>=2.10.0",
+    "pre-commit>=4.6.2",
+    "pylint>=4.1.1",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "pyyaml>=6.0.3",
+    "ruff>=0.16.10",
+    "types-pyyaml>=6.0.12.20260906",
+]

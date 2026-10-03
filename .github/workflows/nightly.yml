@@ -1,0 +1,47 @@
+# Generates every project variant and runs its own make ci. Too heavy for
+# each push (it installs PyTorch), so it runs nightly and on demand.
+name: Nightly
+
+on:
+  schedule:
+    - cron: "17 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generated-projects:
+    # Separate runners: PyTorch, the TeX Live image and the software images
+    # (LiteLLM's alone is 2.7 GB) do not fit on one runner's disk together
+    # (2026-10-02: "no space left on device").
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [code, software, paper]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          # The code part's cache holds several GB of CUDA wheels; saving it
+          # ran out of disk (2026-10-02), so it is never cached.
+          enable-cache: ${{ matrix.part != 'code' }}
+      # PyTorch environments and the software images filled
+      # the runner's disk (2026-10-02). These preinstalled toolchains are
+      # never used here; removing them frees most of the disk.
+      - if: matrix.part != 'paper'
+        run: make free-runner-disk
+      # The software template's frontend runs with the pnpm its own
+      # package.json pins; pnpm then downloads the Node version it names.
+      - if: matrix.part == 'software'
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: "software/{{cookiecutter.repo_name}}/frontend/package.json"
+      - run: make install
+      - run: make test-heavy-${{ matrix.part }}

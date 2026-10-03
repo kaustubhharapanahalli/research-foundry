@@ -1,0 +1,10 @@
+[run]
+branch = True
+# The repository's own plain Python. Generation hooks run in a subprocess
+# and are covered by the render tests; templates are measured inside each
+# generated project, by its own make ci.
+source = _shared/docs, _shared/publish, tools
+
+[report]
+fail_under = 90
+show_missing = True

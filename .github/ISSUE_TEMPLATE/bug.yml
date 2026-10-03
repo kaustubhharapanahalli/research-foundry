@@ -1,0 +1,61 @@
+name: Bug report
+description: Report a reproducible problem in research-foundry or a generated project.
+title: "Bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not report vulnerabilities here. Follow SECURITY.md instead.
+  - type: dropdown
+    id: template
+    attributes:
+      label: Template
+      description: Which template or repository surface is affected?
+      options:
+        - methodology
+        - workspace
+        - paper
+        - software
+        - repository tooling
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Give the research-foundry version or commit used to generate the project.
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: List the smallest commands and answers that reproduce the problem.
+      placeholder: |
+        1. Run ...
+        2. Answer ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Relevant output
+      description: Paste the complete error or failing test output. Remove secrets.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues for this problem.
+          required: true
+        - label: This report contains no secret or private data.
+          required: true

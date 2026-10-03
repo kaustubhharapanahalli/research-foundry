@@ -1,0 +1,5 @@
+# ChkTeX settings. Every disabled warning names why.
+#  1: "command terminated with space" fires on every command that ends a
+#     line, such as \newif\ifcameraready, so it is noise in a preamble.
+#  8: "wrong length of dash" misreads -- ranges inside math and citations.
+CmdLine { -n1 -n8 }

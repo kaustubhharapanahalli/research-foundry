@@ -1,0 +1,1 @@
+{% include "community/CONTRIBUTING.md" -%}

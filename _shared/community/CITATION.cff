@@ -1,0 +1,20 @@
+{%- set name_parts = cookiecutter.author_name.rsplit(" ", 1) -%}
+# GitHub shows a "Cite this repository" button from this file. Keep its
+# version equal to pyproject.toml's; a test checks it.
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "{{ cookiecutter.project_name }}"
+abstract: "{{ cookiecutter.description }}"
+version: 0.1.0
+authors:
+{%- if name_parts | length == 2 %}
+  - given-names: "{{ name_parts[0] }}"
+    family-names: "{{ name_parts[1] }}"
+{%- else %}
+  - name: "{{ cookiecutter.author_name }}"
+{%- endif %}
+repository-code: "https://github.com/{{ cookiecutter.github_owner }}/{{ cookiecutter.repo_name }}"
+{%- if cookiecutter.license != "none" %}
+license: {{ cookiecutter.license }}
+{%- endif %}

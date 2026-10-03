@@ -1,0 +1,16 @@
+{
+  "project_name": "My Project",
+  "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '-') }}",
+  "repo_base": "{{ cookiecutter.project_slug }}",
+  "repo_name": "{{ cookiecutter.repo_base }}-workspace",
+  "description": "Research notes, theory, literature reviews and experiment configs.",
+  "python_version": "3.14",
+  "github_owner": "your-github-user",
+  "_python_floor": "3.12",
+  "_template_kind": "workspace",
+  "__prompts__": {
+    "project_name": "Project name, as people write it",
+    "project_slug": "Project slug (the board label and session names use it)",
+    "repo_base": "Repository base name (may differ from the slug)"
+  }
+}

@@ -1,0 +1,13 @@
+[project]
+name = "{{ cookiecutter.repo_name }}"
+version = "0.1.0"
+description = "{{ cookiecutter.description }}"
+requires-python = ">={{ cookiecutter._python_floor }}"
+dependencies = []
+
+[dependency-groups]
+dev = ["pre-commit>=4.6.2"]
+
+[tool.uv]
+# A workspace holds notes and configs, not an installable package.
+package = false

@@ -1,0 +1,21 @@
+[MAIN]
+py-version = {{ cookiecutter._python_floor }}
+{%- if cookiecutter.get("ml_pytorch") == "yes" %}
+# torch builds many members at import time, which pylint cannot see.
+generated-members = torch.*
+{%- endif %}
+{%- if cookiecutter.get("backend_django") == "yes" %}
+# pylint-django reads the models; it needs the settings and backend/.
+init-hook = import sys; sys.path.insert(0, "backend")
+load-plugins = pylint_django
+django-settings-module = config.settings.test
+{%- endif %}
+
+[FORMAT]
+max-line-length = 79
+
+[MESSAGES CONTROL]
+# Docstrings are checked by Ruff's D rules, not pylint.
+disable = missing-module-docstring,
+          missing-class-docstring,
+          missing-function-docstring

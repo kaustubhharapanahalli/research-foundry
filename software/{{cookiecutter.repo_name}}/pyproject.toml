@@ -1,0 +1,69 @@
+[project]
+name = "{{ cookiecutter.repo_name }}"
+version = "0.1.0"
+description = "{{ cookiecutter.description }}"
+readme = "README.md"
+{%- if cookiecutter.license != "none" %}
+license = "{{ cookiecutter.license }}"
+{%- endif %}
+authors = [{ name = "{{ cookiecutter.author_name }}" }]
+requires-python = ">={{ cookiecutter._python_floor }}"
+dependencies = [
+{%- if cookiecutter.backend_django == "yes" %}
+    "django>=6.1.1",
+    "django-stubs-ext>=6.1.1",
+    "djangorestframework>=3.18.1",
+    "drf-spectacular>=0.30.0",
+    "gunicorn>=26.2.0",
+    "pgvector>=0.5.0",
+    "psycopg[binary,pool]>=3.3.6",
+    "whitenoise>=6.12.0",
+{%- endif %}
+{%- if cookiecutter.ml_pytorch == "yes" %}
+    "numpy>=2.5.3",
+    "torch>=2.14.1",
+{%- endif %}
+]
+
+[dependency-groups]
+dev = [
+    "black>=26.5.1",
+    "flake8>=7.4.1",
+    "isort>=9.0.2",
+    "mypy>=2.4.0",
+    "pre-commit>=4.6.2",
+    "pylint>=4.1.1",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.10",
+{%- if cookiecutter.backend_django == "yes" %}
+    "django-stubs>=6.1.1",
+    "djangorestframework-stubs>=3.18.1",
+    "pylint-django>=2.8.0",
+    "pytest-django>=4.14.0",
+{%- endif %}
+]
+
+[tool.uv]
+# An application, not a library: nothing is built or published.
+package = false
+{%- if cookiecutter.ml_pytorch == "yes" %}
+# Locking fails unless every platform has a wheel: the image builds for
+# linux on x86_64 and on arm64 (Docker on Apple silicon), and development
+# runs on macOS.
+required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+    "sys_platform == 'linux' and platform_machine == 'aarch64'",
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
+
+# The web image serves on CPU: Linux takes PyTorch's CPU build, a fraction
+# of the size of PyPI's CUDA one. macOS keeps PyPI's build.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+{%- endif %}

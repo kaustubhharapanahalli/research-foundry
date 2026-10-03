@@ -1,0 +1,9 @@
+# On a server: publish the proxy on 80 and 443.
+#   docker compose -f compose.yaml -f compose.deploy.yaml --profile app up -d
+# Set SITE_ADDRESS to the public domain first; Caddy then obtains its
+# certificate itself (https://caddyserver.com/docs/automatic-https).
+services:
+  proxy:
+    ports:
+      - "80:8080"
+      - "443:8443"

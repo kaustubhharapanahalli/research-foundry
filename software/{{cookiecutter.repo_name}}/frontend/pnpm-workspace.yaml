@@ -1,0 +1,7 @@
+# pnpm settings for frontend/, its own pnpm project.
+#
+# pnpm runs no dependency build script unless it is named here. The only
+# one asked for is unrs-resolver's, which checks for a native binary that
+# pnpm already installs as an optional dependency, so it stays off.
+allowBuilds:
+  unrs-resolver: false

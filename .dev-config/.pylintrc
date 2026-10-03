@@ -1,0 +1,12 @@
+[MAIN]
+py-version = 3.12
+ignore-paths = .*/\{\{cookiecutter\..*\}\}/.*
+
+[FORMAT]
+max-line-length = 79
+
+[MESSAGES CONTROL]
+# Docstrings are checked by Ruff's D rules, not pylint.
+disable = missing-module-docstring,
+          missing-class-docstring,
+          missing-function-docstring

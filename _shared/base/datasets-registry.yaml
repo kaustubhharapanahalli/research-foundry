@@ -1,0 +1,15 @@
+# Dataset registry -- project-local, and EMPTY on purpose.
+#
+# $schema: none. A project dataset registry has no schema file yet; each entry
+# names a canonical benchmark by its slug in the shipped benchmark registry,
+# plus the local path and the version actually used here. What a benchmark IS
+# is canonical; where this project keeps its copy is not.
+#
+# Written with zero entries for every project type, unconditionally. Seeding it
+# from another project's datasets makes it look configured while describing
+# somebody else's data -- which is worse than empty, because empty is honest.
+#
+#   <benchmark-slug>:
+#     benchmark_ref: <slug in benchmarks.yaml>
+#     location: <path, relative to this repo>
+#     version: <the version actually used>

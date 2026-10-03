@@ -1,0 +1,16 @@
+# The gateway's own config, plus two models that answer without a network
+# (mock_response), for `make smoke-gateway`. Never deployed.
+include:
+  - ../config.yaml
+
+model_list:
+  - model_name: local/echo
+    litellm_params:
+      model: openai/echo
+      api_key: unused
+      mock_response: pong
+  - model_name: remote/echo
+    litellm_params:
+      model: openai/echo
+      api_key: unused
+      mock_response: pong

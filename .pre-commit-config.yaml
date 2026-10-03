@@ -1,0 +1,68 @@
+# The only definition of each check. `make lint` runs this file; CI runs make.
+# Python tools run from uv.lock through `uv run`, so their versions are
+# defined once. `language: unsupported` is pre-commit 4.4's name for `system`.
+minimum_pre_commit_version: "4.4.0"
+
+# Template project folders and the Jinja parts of _shared/ are not Python
+# or YAML a linter can read. They are checked by rendering them
+# (make test-heavy). _shared/docs/ holds plain Python and is linted.
+exclude: '(/\{\{cookiecutter\.[^}]+\}\}/|^_shared/(base|python|licenses|sphinx|community|ml)/)'
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # frozen: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-symlinks
+      - id: check-added-large-files
+      - id: detect-private-key
+
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        entry: uv run black --config .dev-config/black.toml
+        language: unsupported
+        types: [python]
+      - id: isort
+        name: isort
+        entry: uv run isort --settings-path .dev-config/.isort.cfg
+        language: unsupported
+        types: [python]
+      - id: flake8
+        name: flake8
+        entry: uv run flake8 --config .dev-config/.flake8
+        language: unsupported
+        types: [python]
+      - id: pylint
+        name: pylint
+        entry: uv run pylint --rcfile .dev-config/.pylintrc
+        language: unsupported
+        types: [python]
+      - id: mypy
+        name: mypy
+        entry: uv run mypy --config-file .dev-config/mypy.ini
+        language: unsupported
+        types: [python]
+        require_serial: true
+      - id: ruff-docstrings
+        name: ruff (docstrings, Google convention)
+        entry: uv run ruff check --config .dev-config/ruff.toml
+        language: unsupported
+        types: [python]
+      - id: prettier
+        name: prettier (Markdown, YAML, JSON)
+        # pre-commit builds its own Node environment, so CI needs no Node.
+        entry: prettier --write --log-level warn
+        language: node
+        additional_dependencies: ["prettier@3.9.9"]
+        types_or: [markdown, yaml, json]
+      - id: okf-frontmatter
+        name: OKF frontmatter (docs/ and standards/)
+        entry: uv run python _shared/docs/check_frontmatter.py
+        language: unsupported
+        files: ^(docs|standards)/.*\.md$

@@ -1,0 +1,218 @@
+# Development services. Images are pinned by digest; Dependabot updates
+# them. Values here are for a laptop: production takes every secret from
+# its own environment, and prod.py refuses to start without them.
+name: {{ cookiecutter.repo_name }}
+
+x-postgres: &postgres
+  POSTGRES_DB: ${POSTGRES_DB:-app}
+  POSTGRES_USER: ${POSTGRES_USER:-app}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev-only-password}
+
+services:
+  db:
+    # pgvector on PostgreSQL 18 (Debian trixie).
+    image: pgvector/pgvector:0.8.7-pg18-trixie@sha256:9d9c930220cb9bf2f956d10a8f909cf9973d9672ca0278aef2c1e6facccad2e0
+    environment: *postgres
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-{{ cookiecutter.db_port }}}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  # The production image, run as it would be deployed. `make smoke` uses it.
+  # No host port: the checks run inside the network, so nothing clashes
+  # with a server already on this machine.
+  backend:
+    profiles: [app]
+    build: .
+    image: {{ cookiecutter.repo_name }}-backend:dev
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      <<: *postgres
+      POSTGRES_HOST: db
+      # Inside the compose network; the host's port is only for the laptop.
+      POSTGRES_PORT: "5432"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-}
+      # "backend" is the name other services call it by.
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,backend}
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-https://localhost}
+{%- if cookiecutter.proxy_caddy == "yes" %}
+      # The proxy replaces any X-Forwarded-Proto a client sends, so the
+      # backend may trust it, and counts as the one proxy in front.
+      DJANGO_TRUST_FORWARDED_PROTO: "1"
+      DJANGO_NUM_PROXIES: "1"
+{%- endif %}
+{%- if cookiecutter.ml_pytorch == "yes" %}
+      # The served model (apps.inference): a deployment mounts the weights
+      # and names them here. Without them the score API answers 503.
+      ML_WEIGHTS: ${ML_WEIGHTS:-}
+      ML_DEVICE: ${ML_DEVICE:-cpu}
+      ML_THREADS: ${ML_THREADS:-1}
+      # A backstop for the libraries PyTorch and NumPy call into, which
+      # read these rather than PyTorch's own setting.
+      OMP_NUM_THREADS: ${ML_THREADS:-1}
+      MKL_NUM_THREADS: ${ML_THREADS:-1}
+      OPENBLAS_NUM_THREADS: ${ML_THREADS:-1}
+{%- endif %}
+{%- if cookiecutter.gateway_litellm == "yes" %}
+    # The backend reaches the gateway at http://gateway:4000; the database
+    # stays off the gateway's network.
+    networks: [default, gateway-edge]
+{%- endif %}
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/', timeout=2)"
+      interval: 2s
+      timeout: 5s
+      retries: 30
+{%- if cookiecutter.frontend_nextjs == "yes" %}
+
+  # The frontend's production image, reading the backend at request time.
+  frontend:
+    profiles: [app]
+    build: ./frontend
+    image: {{ cookiecutter.repo_name }}-frontend:dev
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      BACKEND_URL: http://backend:8000
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:3000/').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+      interval: 2s
+      timeout: 5s
+      retries: 30
+{%- endif %}
+{%- if cookiecutter.proxy_caddy == "yes" %}
+
+  # The one entry point: TLS and the site's headers, in front of the
+  # backend{% if cookiecutter.frontend_nextjs == "yes" %} and the frontend{% endif %}. No host port here; compose.deploy.yaml
+  # publishes 80 and 443 on a server.
+  proxy:
+    profiles: [app]
+    image: caddy:2.11.4-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b
+    depends_on:
+      backend:
+        condition: service_healthy
+{%- if cookiecutter.frontend_nextjs == "yes" %}
+      frontend:
+        condition: service_healthy
+{%- endif %}
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+    # Loopback only on a laptop: https://localhost:8443. compose.deploy.yaml
+    # publishes 80 and 443 on a server.
+    ports:
+      - "127.0.0.1:${PROXY_PORT:-8443}:8443"
+    # Unprivileged and read-only. The image grants the caddy binary
+    # cap_net_bind_service, so exec fails unless the capability is kept.
+    user: "65532:65532"
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+    # Bounds, so a flood the proxy cannot shed does not take the machine
+    # with it. Raise them for real traffic.
+    mem_limit: 256m
+    cpus: 1
+    pids_limit: 256
+    volumes:
+      - ./proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificates and keys: kept, or Caddy asks for new ones each start.
+      - proxy-data:/data
+    tmpfs:
+      - /config
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:2020/healthz"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+{%- endif %}
+
+{%- if cookiecutter.gateway_litellm == "yes" %}
+
+  # The model gateway: LiteLLM's proxy, under its own profile, so
+  # `--profile app` never starts it. `--profile gateway up` does.
+  gateway:
+    profiles: [gateway]
+    image: ghcr.io/berriai/litellm-non_root:v1.103.2@sha256:bee25ffdd3952562401cd1cb844f2b925f006ea8102d719b6d311cc844594d6c
+    # Refuse to serve without a proper key. `${LITELLM_MASTER_KEY:?}` cannot
+    # say this: compose checks every service, profile or not, so it would
+    # break every compose command on a machine without the gateway.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        case "$$LITELLM_MASTER_KEY" in
+          sk-?*) ;;
+          *) echo "gateway: LITELLM_MASTER_KEY must start with sk-; refusing to serve." >&2
+             exit 64 ;;
+        esac
+        exec /app/docker/prod_entrypoint.sh --config "/app/config/$$GATEWAY_CONFIG" \
+          --port 4000 --num_workers 1 --max_requests_before_restart 10000
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-}
+      GATEWAY_CONFIG: ${GATEWAY_CONFIG:-config.yaml}
+      LITELLM_MODE: PRODUCTION
+      LITELLM_LOG: ERROR
+      NO_DOCS: "True"
+      NO_REDOC: "True"
+      NO_OPENAPI: "True"
+      # The copies baked into the image, so starting makes no outbound call.
+      LITELLM_LOCAL_MODEL_COST_MAP: "True"
+      LITELLM_LOCAL_ANTHROPIC_BETA_HEADERS: "True"
+      LITELLM_LOCAL_AUTOROUTER_PRESETS: "True"
+      LITELLM_LOCAL_BLOG_POSTS: "True"
+      LITELLM_LOCAL_POLICY_TEMPLATES: "True"
+      # policy.py is loaded from here, whichever config file is used.
+      PYTHONPATH: /app/config
+    volumes:
+      - ./gateway:/app/config:ro
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/.cache
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    # Bounds, as for the proxy. One worker took about 500 MB at rest
+    # (measured 2026-10-02); the rest is headroom for requests.
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 512
+    # Its own network: the gateway has outbound internet, and on `default`
+    # it would reach the database by name.
+    networks: [gateway-edge]
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/health/liveliness', timeout=2)"
+      interval: 3s
+      timeout: 5s
+      retries: 40
+      start_period: 30s
+{%- endif %}
+
+volumes:
+  db-data:
+{%- if cookiecutter.proxy_caddy == "yes" %}
+  proxy-data:
+{%- endif %}
+{%- if cookiecutter.gateway_litellm == "yes" %}
+
+networks:
+  gateway-edge:
+{%- endif %}

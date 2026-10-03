@@ -1,0 +1,79 @@
+\documentclass{article}
+
+% Anonymous for submission. Switch to \camerareadytrue for the
+% camera-ready version: it adds the authors, the acknowledgements and any
+% links that would identify them.
+\newif\ifcameraready
+\camerareadyfalse
+
+{% if cookiecutter.venue == "iclr" -%}
+\usepackage{iclr{{ cookiecutter.venue_year }}_conference,times}
+\input{math_commands.tex}
+{%- elif cookiecutter.venue == "neurips" -%}
+\ifcameraready
+  \usepackage[final]{neurips_{{ cookiecutter.venue_year }}}
+\else
+  \usepackage{neurips_{{ cookiecutter.venue_year }}}
+\fi
+{%- else -%}
+\usepackage[margin=1in]{geometry}
+\usepackage[numbers]{natbib}
+{%- endif %}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{url}
+
+% Every reported number comes from here, generated from verified results.
+\input{generated/numbers}
+
+\title{ {{- cookiecutter.paper_title -}} }
+
+\ifcameraready
+  \author{Author names, filled in at camera-ready}
+\else
+  \author{Anonymous authors}
+\fi
+{%- if cookiecutter.venue == "iclr" %}
+
+\ifcameraready
+  \iclrfinalcopy
+\fi
+{%- endif %}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  The abstract.
+\end{abstract}
+
+\input{sections/introduction}
+\input{sections/related_work}
+\input{sections/method}
+\input{sections/experiments}
+\input{sections/results}
+\input{sections/conclusion}
+
+\ifcameraready
+  \section*{Acknowledgements}
+  Acknowledgements appear only in the camera-ready version.
+\fi
+
+{% if cookiecutter.venue == "iclr" -%}
+\bibliographystyle{iclr{{ cookiecutter.venue_year }}_conference}
+{%- elif cookiecutter.venue == "neurips" -%}
+\bibliographystyle{plainnat}
+{%- else -%}
+\bibliographystyle{plainnat}
+{%- endif %}
+\bibliography{references}
+
+\appendix
+\input{sections/appendix}
+
+\end{document}

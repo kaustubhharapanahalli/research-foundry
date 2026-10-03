@@ -1,0 +1,53 @@
+name: Template request
+description: Propose a new kind of research repository template.
+title: "Template: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: repository
+    attributes:
+      label: Repository to generate
+      description: What repository should this template create, and who needs it?
+    validations:
+      required: true
+  - type: textarea
+    id: gap
+    attributes:
+      label: Gap in the existing templates
+      description: Why can methodology, workspace, paper, or software not cover this use case?
+    validations:
+      required: true
+  - type: textarea
+    id: questions
+    attributes:
+      label: Template questions
+      description: List each question, its choices, its default, and the files or components it controls.
+    validations:
+      required: true
+  - type: textarea
+    id: tree
+    attributes:
+      label: Generated structure
+      description: Sketch the important files and directories the template should produce.
+    validations:
+      required: true
+  - type: textarea
+    id: checks
+    attributes:
+      label: Tests and commands
+      description: Describe the generated project's command surface and the unit, functional, determinism, and guard tests it needs.
+    validations:
+      required: true
+  - type: textarea
+    id: standards
+    attributes:
+      label: Standards and decisions
+      description: Link the standards and architectural decisions that govern the proposal, including any new decision needed.
+    validations:
+      required: true
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I can help implement and test this template.

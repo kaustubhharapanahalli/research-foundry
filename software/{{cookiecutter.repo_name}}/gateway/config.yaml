@@ -1,0 +1,23 @@
+# The model gateway: LiteLLM's proxy in front of the model providers.
+# Every setting is from LiteLLM's production and security pages
+# (https://docs.litellm.ai/docs/proxy/prod), checked against v1.103.2.
+#
+# Add a model under model_list. A model whose name starts with local/ may
+# receive private content; any other model receives only content the caller
+# marks public (policy.py). No key goes in this file: each secret is an
+# os.environ/NAME reference, set in the environment.
+model_list: []
+
+litellm_settings:
+  json_logs: true
+  request_timeout: 600
+  # A parameter a model cannot honour is an error, never dropped silently.
+  drop_params: false
+  callbacks: policy.visibility_policy
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  # Clients connect directly; no X-Forwarded-For is trusted.
+  trusted_proxy_ranges: []
+  disable_env_credential_login: true
+  allow_client_side_credentials: false

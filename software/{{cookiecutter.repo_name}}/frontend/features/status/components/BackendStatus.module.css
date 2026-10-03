@@ -1,0 +1,14 @@
+.panel {
+  padding: var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-2);
+  background: var(--color-panel);
+}
+
+.ok {
+  color: var(--color-ok);
+}
+
+.danger {
+  color: var(--color-danger);
+}

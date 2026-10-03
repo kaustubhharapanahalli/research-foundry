@@ -1,0 +1,11 @@
+# Read by latexmk and by Overleaf. No leading dot: Overleaf reads only
+# "latexmkrc", and arXiv deletes hidden files.
+
+# pdflatex: the venue kits require it, and arXiv does not accept LuaLaTeX.
+$pdf_mode = 1;
+
+# The venue's style kit lives in venue/, fetched by `make venue`. BibTeX
+# runs inside the output folder when there is one (make's build/), so its
+# path also names venue/ from there.
+ensure_path('TEXINPUTS', './venue//');
+ensure_path('BSTINPUTS', './venue//', '../venue//');

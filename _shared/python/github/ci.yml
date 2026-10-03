@@ -1,0 +1,36 @@
+# Every check is a make target, so `make ci` on a laptop runs exactly this.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-{% raw %}${{ github.ref }}{% endraw %}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: {{ "30" if cookiecutter.get("ml_pytorch") == "yes" or cookiecutter.get("backend_django") == "yes" else "15" }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+{%- if cookiecutter.get("frontend_nextjs") == "yes" %}
+      # pnpm reads its version from frontend/package.json, then downloads
+      # the Node version that file pins.
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: frontend/package.json
+{%- endif %}
+      - run: make install
+      - run: make ci

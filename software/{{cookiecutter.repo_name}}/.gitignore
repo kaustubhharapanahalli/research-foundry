@@ -1,0 +1,11 @@
+{% include "base/gitignore" -%}
+{% if cookiecutter.frontend_nextjs == "yes" %}
+# Frontend: dependencies, Next's output and test results.
+node_modules/
+frontend/.next/
+frontend/next-env.d.ts
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
+*.tsbuildinfo
+{% endif -%}

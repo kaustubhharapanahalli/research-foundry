@@ -1,0 +1,14 @@
+# Ruff checks docstrings only. Formatting, imports and other
+# lint stay with black, isort, flake8 and pylint, as the coding standard says.
+line-length = 79
+target-version = "py312"
+extend-exclude = ["*/{{cookiecutter.*}}/*"]
+
+[lint]
+select = ["D"]
+
+[lint.pydocstyle]
+convention = "google"
+
+[lint.per-file-ignores]
+"tests/**" = ["D"]

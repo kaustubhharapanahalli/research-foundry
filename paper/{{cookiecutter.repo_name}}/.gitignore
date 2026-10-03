@@ -1,0 +1,17 @@
+{% include "base/gitignore" %}
+# Agent instructions stay local in the paper repo, and Overleaf turns
+# symlinks into plain files.
+AGENTS.md
+CLAUDE.md
+
+# LaTeX output, wherever an editor or Overleaf puts it.
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+/main.pdf

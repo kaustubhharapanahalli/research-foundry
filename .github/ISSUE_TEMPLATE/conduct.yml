@@ -1,0 +1,17 @@
+name: Code of conduct report
+description: Report behavior that breaks the Code of Conduct, or ask for a private channel to report it.
+title: "Conduct: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public. To report privately, write only that you need a
+        private channel, without describing what happened or naming anyone.
+        The maintainer will reply with a private way to continue.
+  - type: textarea
+    id: report
+    attributes:
+      label: Report or request
+      description: What happened, or a request for a private channel.
+    validations:
+      required: true

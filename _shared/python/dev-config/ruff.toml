@@ -1,0 +1,21 @@
+# Ruff checks docstrings only. Formatting, imports and other lint stay with
+# black, isort, flake8 and pylint.
+line-length = 79
+target-version = "py{{ cookiecutter._python_floor.replace('.', '') }}"
+
+[lint]
+select = ["D"]
+{%- if cookiecutter.get("backend_django") == "yes" %}
+# A Django Meta class holds options for its model, not public API.
+ignore = ["D106"]
+{%- endif %}
+
+[lint.pydocstyle]
+convention = "google"
+
+[lint.per-file-ignores]
+"tests/**" = ["D"]
+{%- if cookiecutter.get("backend_django") == "yes" %}
+"**/tests/**" = ["D"]
+"**/migrations/**" = ["D"]
+{%- endif %}
