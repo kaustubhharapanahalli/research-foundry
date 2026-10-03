@@ -7,6 +7,8 @@ moved once projects may have been generated from it.
 
 ## [Unreleased]
 
+## [0.1.0rc1] - 2026-10-02
+
 ### Added
 
 - The installable `research-foundry` Python package, with an offline CLI for
