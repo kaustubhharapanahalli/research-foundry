@@ -23,6 +23,10 @@ moved once projects may have been generated from it.
   and no generated Read the Docs configuration. Existing projects can apply
   the update with `cruft update`.
 
+### Fixed
+
+- The documentation site's home page title no longer repeats the site name.
+
 ## [0.1.0] - 2026-10-03
 
 The first stable release. It holds everything in 0.1.0rc1 below, and these

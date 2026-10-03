@@ -1,6 +1,6 @@
 ---
 type: Guide
-title: research-foundry
+title: Templates for research repositories
 description: Install research-foundry, create a template project, use its Model Context Protocol server, and cite the repository.
 resource: /docs/index.md
 tags: [research-foundry, guide, templates]

@@ -10,7 +10,7 @@ docs: ## Build strict HTML docs in site/ (PD11)
 docs-coverage: ## Check public pages, API modules and docstring coverage (PD3)
 	uv run --group docs python .dev-config/check_frontmatter.py --public-pages docs
 	uv run --group docs python docs/check_reference.py {{ cookiecutter.package_name }}
-	uv run --group docs interrogate --ignore-private --fail-under 100 src/{{ cookiecutter.package_name }}
+	uv run --group docs interrogate --ignore-private --ignore-semiprivate --ignore-magic --ignore-init-method --ignore-init-module --fail-under 100 src/{{ cookiecutter.package_name }}
 
 docs-clean:
 	rm -rf site/

@@ -115,11 +115,14 @@ def main() -> None:
                 ANSWERS["docs_domain"],
             )
             is None
+            # An IP address passes the pattern, but no top-level domain
+            # is all digits.
+            or ANSWERS["docs_domain"].rsplit(".", 1)[-1].isdigit()
         ):
             sys.exit(
                 "docs_domain must be a lowercase hostname with at least one "
-                "dot (for example docs.example.org); remove schemes, paths, "
-                "ports and spaces."
+                "dot (for example docs.example.org), not an IP address; "
+                "remove schemes, paths, ports, spaces and a trailing dot."
             )
     records = ANSWERS["run_records"] == "yes"
     if records and ANSWERS["ml_pytorch"] != "yes":

@@ -322,6 +322,45 @@ def test_docs_domain_refuses_a_port(
     assert "remove schemes" in error
 
 
+@pytest.mark.parametrize(
+    "domain",
+    [
+        "docs.example.org.",
+        "docs .example.org",
+        " docs.example.org",
+        "192.0.2.10",
+    ],
+    ids=["trailing-dot", "inner-space", "leading-space", "ip-address"],
+)
+def test_docs_domain_refuses_other_forms(
+    render: Render, capfd: pytest.CaptureFixture[str], domain: str
+) -> None:
+    with pytest.raises(FailedHookException):
+        render("methodology", docs_domain=domain, **PUBLIC)
+    error = capfd.readouterr().err
+    assert "docs_domain" in error
+    assert "remove schemes" in error
+
+
+def test_docs_coverage_counts_public_names_only(render: Render) -> None:
+    # Private helpers such as _check_row need no docstring; the standard
+    # asks for 100% of the public API.
+    project = render("methodology", ml_pytorch="yes", **PUBLIC)
+    rule = (project / "make" / "docs.mk").read_text()
+    interrogate = next(
+        line for line in rule.splitlines() if "interrogate" in line
+    )
+    for flag in (
+        "--ignore-private",
+        "--ignore-semiprivate",
+        "--ignore-magic",
+        "--ignore-init-method",
+        "--ignore-init-module",
+        "--fail-under 100",
+    ):
+        assert flag in interrogate
+
+
 def test_custom_docs_theme_ships_its_assets_and_css(
     render: Render, tmp_path: Path
 ) -> None:
