@@ -110,7 +110,9 @@ def test_new_check_update_round_trip_through_a_local_bare_repository(
     source = snapshot(ROOT, tmp_path / "source", GIT_ENV)
     _git(["tag", f"v{__version__}"], source)
     bare = tmp_path / "foundry.git"
-    _git(["init", "--bare", str(bare)], tmp_path)
+    # Name the branch: the runner default may be master, and cruft follows
+    # the bare repository HEAD to the branch the templates were pushed to.
+    _git(["init", "--bare", "-b", "main", str(bare)], tmp_path)
     _git(["remote", "add", "release", str(bare)], source)
     _git(["push", "release", "main", "--tags"], source)
     monkeypatch.setenv(REPOSITORY_ENV, str(bare))
