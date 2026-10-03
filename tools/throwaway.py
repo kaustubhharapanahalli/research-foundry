@@ -37,12 +37,23 @@ from tools.variants import VARIANTS
 
 ROOT = Path(__file__).resolve().parent.parent
 TEMPLATES = ("methodology", "workspace", "paper", "software")
+#: Git 2.54 starts a background repack after a commit. A clone made straight
+#: after it can race the repack and lose objects ("failed to copy file"), so
+#: every scratch repository runs with automatic maintenance off.
+NO_AUTO_MAINTENANCE = {
+    "GIT_CONFIG_COUNT": "2",
+    "GIT_CONFIG_KEY_0": "maintenance.auto",
+    "GIT_CONFIG_VALUE_0": "false",
+    "GIT_CONFIG_KEY_1": "gc.auto",
+    "GIT_CONFIG_VALUE_1": "0",
+}
 #: The identity a snapshot commit is made under.
 SNAPSHOT_GIT_ENV = {
     "GIT_AUTHOR_NAME": "throwaway",
     "GIT_AUTHOR_EMAIL": "throwaway@example.invalid",
     "GIT_COMMITTER_NAME": "throwaway",
     "GIT_COMMITTER_EMAIL": "throwaway@example.invalid",
+    **NO_AUTO_MAINTENANCE,
 }
 
 
