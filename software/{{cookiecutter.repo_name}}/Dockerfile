@@ -1,7 +1,7 @@
 # The backend's production image: dependencies from uv.lock, no build
 # tools, a non-root user. Every base image is pinned by digest.
 # https://docs.astral.sh/uv/guides/integration/docker/
-FROM ghcr.io/astral-sh/uv:0.12.22@sha256:f513a91fc62fe7c17567eee97230dd198e43edb8a9fbecca843714a4358fe1bc AS uv
+FROM ghcr.io/astral-sh/uv:0.12.23@sha256:61d393e44e249f2e4b526b6c7ddcecce245946826e608e11c93ad4f5bba55b21 AS uv
 
 FROM python:3.14.8-slim-trixie@sha256:89fb7d3da20043c370643435258bdd7ab755d326d359001d02988ed15ae5219e AS build
 COPY --from=uv /uv /bin/uv
