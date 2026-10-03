@@ -3,6 +3,7 @@
 name: Nightly
 
 on:
+  workflow_call:
   schedule:
     - cron: "17 7 * * *"
   workflow_dispatch:
@@ -44,4 +45,6 @@ jobs:
         with:
           package_json_file: "software/{{cookiecutter.repo_name}}/frontend/package.json"
       - run: make install
-      - run: make test-heavy-${{ matrix.part }}
+      - run: make "test-heavy-$PART"
+        env:
+          PART: ${{ matrix.part }}

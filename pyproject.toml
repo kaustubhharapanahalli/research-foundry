@@ -74,6 +74,7 @@ dev = [
     "flake8>=7.4.1",
     "isort>=9.0.2",
     "mypy>=2.4.0",
+    "packaging>=26.3",
     "pip-audit>=2.10.0",
     "pre-commit>=4.6.2",
     "pylint>=4.1.1",

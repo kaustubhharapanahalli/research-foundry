@@ -5,7 +5,7 @@ endif
 
 PYTEST := uv run pytest -c .dev-config/pytest.ini --rootdir . tests src/research_foundry --doctest-modules
 
-.PHONY: install lint fmt test test-unit test-functional test-all test-heavy test-heavy-code test-heavy-software test-heavy-paper template-matrix install-skills throwaway free-runner-disk audit audit-generated audit-issue check-pins pins-issue coverage ci
+.PHONY: install lint fmt test test-unit test-functional test-all test-heavy test-heavy-code test-heavy-software test-heavy-paper template-matrix install-skills throwaway free-runner-disk audit audit-generated audit-issue check-pins pins-issue dist release-check github-release refuse-private coverage ci
 
 install: ## Install the locked toolchain and the git hook (PYTHON=3.12 to use another interpreter)
 	uv sync --locked
@@ -86,6 +86,18 @@ pins-issue: ## Open or update the one weekly template-pin issue
 	else \
 		gh issue create --title "Weekly template pin report" --label dependencies --body-file build/pins-report.md; \
 	fi
+
+dist: ## Build source and wheel distributions into dist/
+	uv build
+
+release-check: ## Refuse unless TAG=v<project version> and its changelog section exists
+	uv run python -m tools.release check --tag "$(TAG)"
+
+github-release: ## Create the GitHub Release for TAG with distributions attached
+	uv run python -m tools.release github-release --tag "$(TAG)"
+
+refuse-private: ## Refuse publication unless GitHub reports a public repository
+	uv run python -m tools.release refuse-private
 
 coverage: ## test-all, failing below 90% coverage of the plain Python
 	$(PYTEST) -m "not heavy" --cov --cov-config=.dev-config/.coveragerc
