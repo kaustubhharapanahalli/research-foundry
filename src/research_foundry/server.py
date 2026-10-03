@@ -13,6 +13,7 @@ from typing import TypedDict
 # mcp 2.x renamed FastMCP to MCPServer.  This alias preserves the requested
 # FastMCP programming model while using the locked, typed SDK API.
 from mcp.server.mcpserver import MCPServer as FastMCP
+from research_foundry import __version__
 from research_foundry.cruft import check_project as _check_project
 from research_foundry.cruft import update_project as _update_project
 from research_foundry.templates import (
@@ -44,7 +45,7 @@ class ToolResult(TypedDict, total=False):
     updated: bool
 
 
-server = FastMCP("research-foundry")
+server = FastMCP("research-foundry", version=__version__)
 
 
 @server.tool()
