@@ -33,6 +33,20 @@ Write each commit subject as a sentence saying what is now true. Open one pull
 request per change and explain what changed, why it changed, and which tests you
 ran.
 
+## Make a release
+
+Move the Unreleased changelog entries under a dated version, set that version in
+`pyproject.toml`, and merge both changes through a pull request. After the
+release commit's continuous integration and nightly matrix pass, push its new
+`vX.Y.Z` tag; never move a tag.
+
+The release workflow builds the distributions, reruns the matrix, publishes to
+Test Python Package Index (TestPyPI), and pauses for the maintainer's approval in
+the `pypi` environment. Approval publishes to the Python Package Index (PyPI)
+and creates the GitHub Release with changelog notes and distributions attached.
+A release candidate is published to PyPI as a pre-release; pip and uv skip
+pre-release versions unless explicitly asked for one.
+
 ## Propose a template
 
 Open a [template request](https://github.com/kaustubhharapanahalli/research-foundry/issues/new?template=template-request.yml).

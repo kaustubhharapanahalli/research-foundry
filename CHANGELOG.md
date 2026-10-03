@@ -17,6 +17,13 @@ moved once projects may have been generated from it.
 - A standard-input/output Model Context Protocol (MCP) server with tools to
   list and inspect templates, validate a project plan without persistent
   output, create confirmed projects, and check or apply confirmed updates.
+- A tag-driven release pipeline that validates the version and changelog, runs
+  the generated-project matrix, publishes through trusted publishing to Test
+  Python Package Index and then the Python Package Index after maintainer
+  approval, attests the distributions, and creates the GitHub Release. Every
+  publishing job independently refuses a private repository. Release
+  candidates are published as pre-releases, which pip and uv skip unless
+  explicitly asked for one.
 - Weekly dependency and security maintenance: grouped Dependabot version
   updates, audits of Foundry and every generated heavy variant, reports for
   template pins hidden from Dependabot, public-repository dependency review,
