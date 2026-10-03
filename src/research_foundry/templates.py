@@ -423,8 +423,8 @@ def release_commit(repository: str) -> str:
         The full tag SHA, or ``v<version>`` when Git cannot reach it.
 
     Examples:
-        >>> release_commit("/path/that/does/not/exist")
-        'v0.1.0'
+        >>> release_commit("/path/that/does/not/exist") == f"v{__version__}"
+        True
     """
     tag = f"v{__version__}"
     try:
