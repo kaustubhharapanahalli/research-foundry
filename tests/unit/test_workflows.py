@@ -230,11 +230,19 @@ def test_publishing_guard_refuses_a_job_missing_either_layer(
         _assert_publish_guards({"jobs": {"publish": job}})
 
 
-@pytest.mark.parametrize("job_name", ["testpypi", "pypi", "github-release"])
-def test_publishing_jobs_bootstrap_before_running_guard(job_name: str) -> None:
-    job = _load(ROOT / ".github" / "workflows" / "release.yml")["jobs"][
-        job_name
-    ]
+@pytest.mark.parametrize(
+    ("workflow", "job_name"),
+    [
+        ("release.yml", "testpypi"),
+        ("release.yml", "pypi"),
+        ("release.yml", "github-release"),
+        ("docs.yml", "deploy"),
+    ],
+)
+def test_publishing_jobs_bootstrap_before_running_guard(
+    workflow: str, job_name: str
+) -> None:
+    job = _load(ROOT / ".github" / "workflows" / workflow)["jobs"][job_name]
 
     assert job["steps"][:3] == [
         {
@@ -253,6 +261,29 @@ def test_publishing_jobs_bootstrap_before_running_guard(job_name: str) -> None:
             },
         },
     ]
+
+
+def test_docs_build_strictly_and_only_the_deploy_job_may_write_pages() -> None:
+    docs = _load(ROOT / ".github" / "workflows" / "docs.yml")
+    assert docs[True] == {
+        "push": {"branches": ["main"]},
+        "workflow_dispatch": None,
+    }
+    build, deploy = docs["jobs"]["build"], docs["jobs"]["deploy"]
+    assert [step.get("run") for step in build["steps"] if "run" in step] == [
+        "make install",
+        "make docs",
+    ]
+    assert build["steps"][-1]["with"] == {"path": "site/"}
+    assert build["permissions"] == {"contents": "read"}
+    assert deploy["needs"] == "build"
+    assert deploy["permissions"] == {
+        "contents": "read",
+        "pages": "write",
+        "id-token": "write",
+    }
+    assert deploy["environment"]["name"] == "github-pages"
+    assert deploy["steps"][-1]["uses"].startswith("actions/deploy-pages@")
 
 
 def test_ci_checks_every_supported_python_version() -> None:
