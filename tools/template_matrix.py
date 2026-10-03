@@ -45,7 +45,13 @@ from research_foundry.templates import (
     plan_project,
     write_cookiecutter_config,
 )
-from tools.throwaway import ROOT, TEMPLATES, generate, snapshot
+from tools.throwaway import (
+    NO_AUTO_MAINTENANCE,
+    ROOT,
+    TEMPLATES,
+    generate,
+    snapshot,
+)
 
 __all__ = [
     "ROOT",
@@ -67,6 +73,7 @@ GIT_ENV = {
     "GIT_AUTHOR_EMAIL": "foundry-matrix@example.org",
     "GIT_COMMITTER_NAME": "foundry-matrix",
     "GIT_COMMITTER_EMAIL": "foundry-matrix@example.org",
+    **NO_AUTO_MAINTENANCE,
 }
 #: Answers every combination carries, so options that need them can be
 #: tried: public documentation refuses to render without a contact.

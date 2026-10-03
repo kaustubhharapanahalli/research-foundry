@@ -39,7 +39,7 @@ Homepage = "https://github.com/kaustubhharapanahalli/research-foundry"
 Source = "https://github.com/kaustubhharapanahalli/research-foundry"
 Issues = "https://github.com/kaustubhharapanahalli/research-foundry/issues"
 Changelog = "https://github.com/kaustubhharapanahalli/research-foundry/blob/main/CHANGELOG.md"
-Documentation = "https://kaustubhharapanahalli.me/research-foundry/"
+Documentation = "https://research-foundry.kaustubhharapanahalli.me/"
 
 [project.scripts]
 research-foundry = "research_foundry.cli:main"
@@ -72,7 +72,10 @@ exclude = [
 dev = [
     "black>=26.5.1",
     "flake8>=7.4.1",
+    "interrogate>=1.7.0",
     "isort>=9.0.2",
+    "mkdocs-material>=9.7.7",
+    "mkdocstrings[python]>=1.0.6",
     "mypy>=2.4.0",
     "packaging>=26.3",
     "pip-audit>=2.10.0",
@@ -84,3 +87,11 @@ dev = [
     "ruff>=0.16.10",
     "types-pyyaml>=6.0.12.20260906",
 ]
+
+[tool.interrogate]
+fail-under = 100
+ignore-init-method = true
+ignore-init-module = true
+ignore-magic = true
+ignore-semiprivate = true
+ignore-private = true

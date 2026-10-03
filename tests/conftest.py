@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from cookiecutter import config as cookiecutter_config
 from cookiecutter.main import cookiecutter
+from tools.throwaway import NO_AUTO_MAINTENANCE
 
 ROOT = Path(__file__).resolve().parent.parent
 SHARED = ROOT / "_shared"
@@ -19,6 +20,8 @@ GIT_ENV = {
     "GIT_AUTHOR_EMAIL": "foundry-test@example.org",
     "GIT_COMMITTER_NAME": "foundry-test",
     "GIT_COMMITTER_EMAIL": "foundry-test@example.org",
+    # A background repack can race a clone; see NO_AUTO_MAINTENANCE.
+    **NO_AUTO_MAINTENANCE,
 }
 INCLUDE = re.compile(r"""\{%-?\s*include\s+["']([^"']+)["']""")
 # Template syntax a render should never leave behind. JSX's {{ ... }}

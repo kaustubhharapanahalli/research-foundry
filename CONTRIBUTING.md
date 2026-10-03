@@ -23,6 +23,12 @@ The Makefile is the command surface:
 Pass `PYTHON=3.12` to a target to select another interpreter, for example
 `make ci PYTHON=3.12`.
 
+## Documentation
+
+`make docs` builds the strict documentation site. `make typecheck`,
+`make docstrings` and `make doctest` run the named typing, docstring and
+doctest gates.
+
 ## Make a change
 
 Write tests first. Never weaken a test to make a change pass. Follow the rules in

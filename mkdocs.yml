@@ -1,0 +1,76 @@
+site_name: research-foundry
+site_url: https://research-foundry.kaustubhharapanahalli.me/
+repo_url: https://github.com/kaustubhharapanahalli/research-foundry
+docs_dir: docs
+exclude_docs: |
+  !templates/
+  !templates/**
+
+theme:
+  name: material
+  logo: assets/hk-light.svg
+  favicon: assets/hk.svg
+  font:
+    text: Inter
+    code: IBM Plex Mono
+  palette:
+    - scheme: default
+      primary: teal
+      accent: deep orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: deep orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - src
+          options:
+            docstring_style: google
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.arithmatex:
+      generic: true
+  - toc:
+      permalink: true
+
+extra_javascript:
+  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js
+
+nav:
+  - Home: index.md
+  - Templates:
+      - Methodology: templates/methodology.md
+      - Workspace: templates/workspace.md
+      - Paper: templates/paper.md
+      - Software: templates/software.md
+  - Run records: run-records.md
+  - Architecture decisions:
+      - Cookiecutter and Cruft shared base: adr/0001-cookiecutter-cruft-shared-base.md
+      - Software template layout: adr/0002-software-template-layout.md
+      - Frontend component and pins: adr/0003-frontend-component-and-pins.md
+      - Software template omissions: adr/0004-software-template-omissions.md
+      - Proxy and gateway: adr/0005-proxy-and-gateway.md
+      - Machine-learning PyTorch in software: adr/0006-ml-pytorch-in-software.md
+      - Public export: adr/0007-public-export.md
+      - Run sidecars: adr/0008-run-sidecars.md
+      - Paper and workspace layout: adr/0009-paper-and-workspace-layout.md
+      - Python floor: adr/0010-python-floor.md
+  - API reference: reference.md

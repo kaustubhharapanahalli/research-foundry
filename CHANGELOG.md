@@ -7,6 +7,18 @@ moved once projects may have been generated from it.
 
 ## [Unreleased]
 
+### Added
+
+- A strict MkDocs Material documentation site with a generated Python API
+  reference, light and dark palettes, and published template, run-record and
+  architecture-decision guides.
+- Named `make typecheck`, `make docstrings` and `make doctest` gates, plus
+  `make docs`; continuous integration now builds the site.
+
+### Changed
+
+- Every template's `.gitignore` ignores `site/`, where MkDocs builds a site.
+
 ### Fixed
 
 - The weekly pin report reads GitHub Container Registry tags with an anonymous

@@ -12,6 +12,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
+from tests.conftest import GIT_ENV as TEST_GIT_ENV
 from tools import template_matrix as matrix
 from tools import throwaway
 
@@ -324,3 +325,17 @@ def test_where_refuses_a_filter_that_matches_nothing(pair: str) -> None:
     found: matrix.Found = {"software": ([matrix.Variant("software", ())], [])}
     with pytest.raises(ValueError):
         matrix.where(found, [pair])
+
+
+@pytest.mark.unit
+def test_every_scratch_git_environment_turns_automatic_maintenance_off() -> (
+    None
+):
+    quiet = throwaway.NO_AUTO_MAINTENANCE
+    for env in (TEST_GIT_ENV, matrix.GIT_ENV, throwaway.SNAPSHOT_GIT_ENV):
+        assert quiet.items() <= env.items()
+    keys = {
+        quiet[f"GIT_CONFIG_KEY_{i}"]: quiet[f"GIT_CONFIG_VALUE_{i}"]
+        for i in range(int(quiet["GIT_CONFIG_COUNT"]))
+    }
+    assert keys == {"maintenance.auto": "false", "gc.auto": "0"}
