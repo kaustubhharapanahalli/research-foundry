@@ -7,6 +7,11 @@ moved once projects may have been generated from it.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-03
+
+The first stable release. It holds everything in 0.1.0rc1 below, and these
+changes since.
+
 ### Added
 
 - A strict MkDocs Material documentation site with a generated Python API
