@@ -196,9 +196,13 @@ GitHub's **Cite this repository** button in the repository sidebar reads
   title = {research-foundry},
   version = {0.1.0},
   url = {https://github.com/kaustubhharapanahalli/research-foundry},
-  license = {Apache-2.0}
+  license = {Apache-2.0},
+  doi = {10.5281/zenodo.23123933}
 }
 ```
+
+The DOI is Zenodo's concept DOI: it names research-foundry as a whole and
+resolves to the latest archived version.
 
 `CITATION.cff` is the source, and a test keeps this entry in step with it.
 
