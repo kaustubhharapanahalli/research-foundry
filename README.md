@@ -195,6 +195,7 @@ GitHub's **Cite this repository** button in the repository sidebar reads
   author = {Harapanahalli, Kaustubh},
   title = {research-foundry},
   version = {0.1.0},
+  year = {2026},
   url = {https://github.com/kaustubhharapanahalli/research-foundry},
   license = {Apache-2.0},
   doi = {10.5281/zenodo.23123933}

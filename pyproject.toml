@@ -1,6 +1,6 @@
 [project]
 name = "research-foundry"
-version = "0.1.0rc1"
+version = "0.1.0"
 description = "Cookiecutter templates for every kind of repository a research project needs, kept current with cruft."
 readme = "README.md"
 license = "Apache-2.0"
