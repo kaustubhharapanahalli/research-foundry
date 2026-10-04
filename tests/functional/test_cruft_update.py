@@ -85,7 +85,7 @@ def test_public_docs_can_be_turned_on_later(tmp_path: Path) -> None:
         cwd=tmp_path,
     )  # fmt: skip
     project = next(out.iterdir())
-    assert not (project / "docs" / "conf.py").exists()
+    assert not (project / "mkdocs.yml").exists()
     _run("git", "init", "-q", cwd=project)
     _run("git", "add", "-A", cwd=project)
     _run("git", "commit", "-qm", "generated", cwd=project)
@@ -93,10 +93,13 @@ def test_public_docs_can_be_turned_on_later(tmp_path: Path) -> None:
     _run(
         "cruft", "update", "--skip-apply-ask",
         "--variables-to-update",
-        '{"public_docs": "yes", "contact_email": "maintainers@example.org"}',
+        '{"public_docs": "yes", "docs_theme": "custom", '
+        '"contact_email": "maintainers@example.org"}',
         cwd=project,
     )  # fmt: skip
 
-    assert (project / "docs" / "conf.py").is_file()
+    assert (project / "mkdocs.yml").is_file()
+    assert (project / "docs" / "stylesheets" / "extra.css").is_file()
+    assert (project / "docs" / "assets" / "logo.svg").is_file()
     assert (project / "CODE_OF_CONDUCT.md").is_file()
     assert "include make/docs.mk" in (project / "Makefile").read_text()

@@ -1,6 +1,6 @@
 ---
 name: public-docs
-description: Write and review the public documentation of a foundry-generated repository - API docstrings, the Sphinx reference, how-to guides, tutorials and the project files - to the public documentation standard (PD1-PD17). Use when adding or changing a public symbol, writing a docs page, deprecating anything, preparing a release, or asked to "document this", "write the docs" or "review the docs" in a repository that publishes them.
+description: Write and review the public documentation of a foundry-generated repository - API docstrings, the MkDocs reference, how-to guides, tutorials and the project files - to the public documentation standard (PD1-PD17). Use when adding or changing a public symbol, writing a docs page, deprecating anything, preparing a release, or asked to "document this", "write the docs" or "review the docs" in a repository that publishes them.
 ---
 
 # Public documentation
@@ -12,7 +12,7 @@ If this file and the standard disagree, the standard wins. Then fix this file.
 ## Which skill
 
 - **This skill:** anything a reader outside the project sees. That includes
-  docstrings of public symbols, `docs/` pages built by Sphinx, `docs_src/`, and
+  docstrings of public symbols, `docs/` pages built by MkDocs, `docs_src/`, and
   the project files listed in PD14.
 - **`docs-review`:** internal documents, meaning design documents, ADRs and
   agent-readable pages with full OKF frontmatter. An ADR in a public repository
@@ -31,7 +31,7 @@ If this file and the standard disagree, the standard wins. Then fix this file.
    every example before you write its output into the docstring, then copy the
    output exactly. Never write output you did not see.
 3. **How-to code (PD8).** Put the code in `docs_src/<topic>.py` and include it
-   with `literalinclude`. Add what it prints to `EXPECTED` in
+   with `pymdownx.snippets` (`--8<--`). Add what it prints to `EXPECTED` in
    `tests/functional/test_docs_src.py`; the test refuses a script without
    an entry.
 4. **Changes (PD10).** Add `versionadded` or `versionchanged` with the version
@@ -47,7 +47,7 @@ Run these first, and report their exact output:
 ```bash
 make lint            # PD2, PD4, PD6: Ruff D rules, line length
 make test            # PD7, PD8: doctests and docs_src scripts
-make docs            # PD11: -W -n, so any warning fails
+make docs            # PD11: strict MkDocs build; any warning fails
 make docs-coverage   # PD3: every public symbol in the reference
 ```
 

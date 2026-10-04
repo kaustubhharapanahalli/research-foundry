@@ -8,10 +8,18 @@ description: Every public module, class and function, generated from the docstri
 Every public module, class and function in `{{ cookiecutter.package_name }}`.
 This page is generated from the docstrings, so it is never out of date.
 
-```{eval-rst}
-.. autosummary::
-   :toctree: generated
-   :recursive:
+::: {{ cookiecutter.package_name }}
+{%- if cookiecutter.ml_pytorch == "yes" %}
 
-   {{ cookiecutter.package_name }}
-```
+::: {{ cookiecutter.package_name }}.device
+
+::: {{ cookiecutter.package_name }}.seeding
+
+::: {{ cookiecutter.package_name }}.threads
+
+::: {{ cookiecutter.package_name }}.runrecord
+{%- endif %}
+{%- if cookiecutter.run_records == "yes" %}
+
+::: {{ cookiecutter.package_name }}.sidecars
+{%- endif %}

@@ -80,6 +80,10 @@ GIT_ENV = {
 BASE_ANSWERS: dict[str, dict[str, str]] = {
     "methodology": {"contact_email": "maintainers@example.org"},
 }
+# Answers whose file differences appear only when another choice is enabled.
+OPTION_CONTEXT: dict[tuple[str, str], dict[str, str]] = {
+    ("methodology", "docs_theme"): {"public_docs": "yes"},
+}
 #: The shared change the update step must carry into each project.
 SHARED_FILE = Path("_shared") / "base" / "editorconfig"
 SHARED_MARK = "[*.template-matrix]"
@@ -159,7 +163,11 @@ def tree_options(
         seen: set[frozenset[str]] = set()
         kept: list[str] = []
         for value in values:
-            files = render(source, template, {name: value}, into)
+            answers = {
+                **OPTION_CONTEXT.get((template, name), {}),
+                name: value,
+            }
+            files = render(source, template, answers, into)
             if isinstance(files, str):
                 kept.append(value)
             elif files not in seen:
@@ -178,8 +186,18 @@ def variants(
     names = list(options)
     runnable: list[Variant] = []
     refused: list[tuple[Variant, str]] = []
+    seen: set[Variant] = set()
     for values in itertools.product(*(options[n] for n in names)):
-        variant = Variant(template, tuple(zip(names, values, strict=True)))
+        answers = dict(zip(names, values, strict=True))
+        if template == "methodology" and answers.get("public_docs") == "no":
+            answers.pop("docs_theme", None)
+        variant = Variant(
+            template,
+            tuple((name, answers[name]) for name in names if name in answers),
+        )
+        if variant in seen:
+            continue
+        seen.add(variant)
         files = render(source, template, dict(variant.answers), into)
         if isinstance(files, str):
             refused.append((variant, files))

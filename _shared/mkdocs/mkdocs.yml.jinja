@@ -1,0 +1,72 @@
+site_name: "{{ cookiecutter.project_name }}"
+{%- if cookiecutter.docs_domain %}
+site_url: "https://{{ cookiecutter.docs_domain }}/"
+{%- else %}
+site_url: "https://{{ cookiecutter.github_owner }}.github.io/{{ cookiecutter.repo_name }}/"
+{%- endif %}
+repo_url: "https://github.com/{{ cookiecutter.github_owner }}/{{ cookiecutter.repo_name }}"
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+{%- if cookiecutter.docs_theme == "custom" %}
+  font:
+    text: Roboto
+    code: Roboto Mono
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+{%- endif %}
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.snippets:
+      check_paths: true
+      base_path:
+        - docs_src
+  - pymdownx.arithmatex:
+      generic: true
+  - toc:
+      permalink: true
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+{%- if cookiecutter.docs_theme == "custom" %}
+extra_css:
+  - stylesheets/extra.css
+{%- endif %}
+
+nav:
+  - Home: index.md
+  - How-to:
+      - Overview: how-to/index.md
+      - Check the install: how-to/check-the-install.md
+{%- if cookiecutter.ml_pytorch == "yes" %}
+      - Repeat a run exactly: how-to/repeat-a-run.md
+{%- endif %}
+{%- if cookiecutter.ml_pytorch == "yes" %}
+  - Explanation: explanation/reproducibility.md
+{%- endif %}
+  - API: api/index.md
+  - ADRs: adr/0001-development-setup.md

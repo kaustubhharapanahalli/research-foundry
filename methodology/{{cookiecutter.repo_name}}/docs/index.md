@@ -1,18 +1,18 @@
 ---
-title: {{ cookiecutter.project_name | tojson }}
-description: {{ cookiecutter.description | tojson }}
+title: >-
+  {{ cookiecutter.project_name }}
+description: >-
+  {{ cookiecutter.description }}
 ---
 
 # {{ cookiecutter.project_name }}
 
 {{ cookiecutter.description }}
 
-```{toctree}
-:maxdepth: 2
-
-how-to/index
+Start with the [how-to guides](how-to/index.md), see
 {%- if cookiecutter.ml_pytorch == "yes" %}
-explanation/reproducibility
+the [reproducibility explanation](explanation/reproducibility.md), or browse
+{%- else %}
+or browse
 {%- endif %}
-api/index
-```
+the [API reference](api/index.md).

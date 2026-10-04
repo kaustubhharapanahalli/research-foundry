@@ -36,6 +36,16 @@ VARIANTS: dict[str, tuple[str, dict[str, str]]] = {
             "contact_email": "maintainers@example.org",
         },
     ),
+    "methodology-custom-docs-theme": (
+        "methodology",
+        {
+            "ml_pytorch": "no",
+            "public_docs": "yes",
+            "docs_theme": "custom",
+            "docs_domain": "docs.example.org",
+            "contact_email": "maintainers@example.org",
+        },
+    ),
     "workspace": ("workspace", {}),
     "paper-article": ("paper", {"venue": "article"}),
     "paper-iclr": ("paper", {"venue": "iclr", "venue_year": "2027"}),

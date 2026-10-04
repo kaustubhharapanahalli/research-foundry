@@ -108,3 +108,34 @@ def test_main_passes_good_documents(
     Path("docs/adr").mkdir(parents=True)
     Path("docs/adr/0001-a.md").write_text(GOOD, encoding="utf-8")
     assert cf.main(["docs/adr/0001-a.md"]) == 0
+
+
+def test_public_page_frontmatter_accepts_title_and_description_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    docs = Path("docs")
+    docs.mkdir()
+    (docs / "index.md").write_text(
+        "---\ntitle: Home\ndescription: Start here.\n---\n", encoding="utf-8"
+    )
+    (docs / "adr").mkdir()
+    (docs / "adr" / "0001-a.md").write_text(GOOD, encoding="utf-8")
+    assert cf.main(["--public-pages", "docs"]) == 0
+
+
+def test_public_page_frontmatter_refuses_extra_fields(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    Path("docs").mkdir()
+    Path("docs/index.md").write_text(
+        "---\ntitle: Home\ndescription: Start here.\ntags: [public]\n---\n",
+        encoding="utf-8",
+    )
+    assert cf.main(["--public-pages", "docs"]) == 1
+    assert (
+        capsys.readouterr().out == "docs/index.md: unexpected fields: tags\n"
+    )

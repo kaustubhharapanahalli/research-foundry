@@ -7,6 +7,7 @@ only deletes files inside that project: no network, nothing outside it.
 # Each template hook is a standalone entrypoint, so guards cannot be shared.
 # pylint: disable=duplicate-code
 
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -17,6 +18,8 @@ ANSWERS: dict[str, str] = {
     "ml_pytorch": "{{ cookiecutter.ml_pytorch }}",
     "license": "{{ cookiecutter.license }}",
     "public_docs": "{{ cookiecutter.public_docs }}",
+    "docs_theme": "{{ cookiecutter.docs_theme }}",
+    "docs_domain": "{{ cookiecutter.docs_domain }}",
     "contact_email": "{{ cookiecutter.contact_email }}",
     "dataset_registry": "{{ cookiecutter.dataset_registry }}",
     "run_records": "{{ cookiecutter.run_records }}",
@@ -45,21 +48,28 @@ STORE_ONLY = [
     Path("tests") / "functional" / "test_dispatched_run.py",
 ]
 DOCS_ONLY = [
-    Path("docs") / "conf.py",
+    Path("mkdocs.yml.jinja"),
+    Path(".github") / "workflows" / "docs.yml",
     Path("docs") / "index.md",
-    Path("docs") / "_templates",
+    Path("docs") / "check_reference.py",
+    Path(".dev-config") / "check_frontmatter.py",
     Path("docs") / "api",
     Path("docs") / "how-to",
     Path("docs") / "explanation",
+    Path("docs") / "assets",
+    Path("docs") / "stylesheets",
     Path("docs_src"),
     Path("make") / "docs.mk",
-    Path(".readthedocs.yaml"),
     Path("CODE_OF_CONDUCT.md"),
     Path("CONTRIBUTING.md"),
     Path("SECURITY.md"),
     Path("CITATION.cff"),
     Path("tests") / "functional" / "test_docs_src.py",
     Path("tests") / "functional" / "test_project_files.py",
+]
+CUSTOM_DOCS_ONLY = [
+    Path("docs") / "assets",
+    Path("docs") / "stylesheets",
 ]
 
 
@@ -69,6 +79,18 @@ def remove(path: Path) -> None:
         shutil.rmtree(path)
     else:
         path.unlink(missing_ok=True)
+
+
+def configure_docs() -> None:
+    """Keep only the documentation files selected by the answers."""
+    if ANSWERS["public_docs"] != "yes":
+        for path in DOCS_ONLY:
+            remove(path)
+        return
+    Path("mkdocs.yml.jinja").rename("mkdocs.yml")
+    if ANSWERS["docs_theme"] != "custom":
+        for path in CUSTOM_DOCS_ONLY:
+            remove(path)
 
 
 def main() -> None:
@@ -85,6 +107,23 @@ def main() -> None:
         # Conduct and security reports need somewhere to go. The address is
         # typed at generation; it is never a default or taken from a profile.
         sys.exit("public_docs=yes needs contact_email: type the address.")
+    if ANSWERS["public_docs"] == "yes" and ANSWERS["docs_domain"]:
+        if (
+            re.fullmatch(
+                r"(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+"
+                r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
+                ANSWERS["docs_domain"],
+            )
+            is None
+            # An IP address passes the pattern, but no top-level domain
+            # is all digits.
+            or ANSWERS["docs_domain"].rsplit(".", 1)[-1].isdigit()
+        ):
+            sys.exit(
+                "docs_domain must be a lowercase hostname with at least one "
+                "dot (for example docs.example.org), not an IP address; "
+                "remove schemes, paths, ports, spaces and a trailing dot."
+            )
     records = ANSWERS["run_records"] == "yes"
     if records and ANSWERS["ml_pytorch"] != "yes":
         # The witness records the device and its memory, which only a
@@ -96,9 +135,7 @@ def main() -> None:
     if ANSWERS["ml_pytorch"] != "yes":
         for path in ML_ONLY:
             remove(path)
-    if ANSWERS["public_docs"] != "yes":
-        for path in DOCS_ONLY:
-            remove(path)
+    configure_docs()
     if ANSWERS["license"] == "none":
         Path("LICENSE").unlink()
     if ANSWERS["dataset_registry"] != "yes":

@@ -32,11 +32,22 @@ make ci     # everything CI runs, including coverage
 ## Documentation
 
 ```bash
-make docs   # builds docs/_build/html/index.html
+make docs   # builds the site in site/
 ```
 
 The docs have how-to guides and an API reference generated from the
-docstrings. To contribute, see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+docstrings. To publish them, set **Settings → Pages → Source** to **GitHub
+Actions**. The included workflow builds the site and publishes it on pushes
+to `main`. To contribute, see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+{%- if cookiecutter.docs_domain %}
+
+For `{{ cookiecutter.docs_domain }}`, create a DNS CNAME record pointing to
+`{{ cookiecutter.github_owner }}.github.io`, then enter
+`{{ cookiecutter.docs_domain }}` in **Settings → Pages → Custom domain**.
+Turn on **Enforce HTTPS** once GitHub has issued the certificate. Pages
+deployments through Actions ignore a `CNAME` file; the Pages setting is the
+only place the custom domain goes.
+{%- endif %}
 {%- endif %}
 
 ## Publishing
@@ -56,7 +67,7 @@ history travels.
 - `tests/unit/`: fast tests of one piece each.
 - `tests/functional/`: whole pipelines on tiny inputs, CPU only.
   {%- if cookiecutter.public_docs == "yes" %}
-- `docs/`: the documentation, built by Sphinx.
+- `docs/`: the documentation, built by MkDocs.
 - `docs_src/`: the code each how-to guide includes, run by the tests.
   {%- endif %}
   {%- if cookiecutter.dataset_registry == "yes" %}

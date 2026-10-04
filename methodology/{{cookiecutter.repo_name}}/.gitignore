@@ -1,6 +1,1 @@
 {% include "base/gitignore" -%}
-{% if cookiecutter.public_docs == "yes" %}
-# Sphinx output, and the API pages it generates on every build.
-docs/_build/
-docs/api/generated/
-{% endif -%}
