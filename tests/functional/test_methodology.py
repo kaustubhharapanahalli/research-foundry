@@ -355,10 +355,12 @@ def test_docs_coverage_counts_public_names_only(render: Render) -> None:
         "--ignore-semiprivate",
         "--ignore-magic",
         "--ignore-init-method",
-        "--ignore-init-module",
         "--fail-under 100",
     ):
         assert flag in interrogate
+    # A plain package is only __init__.py; ignoring it leaves Interrogate
+    # nothing to check, and it fails.
+    assert "--ignore-init-module" not in interrogate
 
 
 def test_custom_docs_theme_ships_its_assets_and_css(
