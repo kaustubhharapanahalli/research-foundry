@@ -1,9 +1,11 @@
 """The paper template builds the way Overleaf and arXiv expect."""
 
+import subprocess
 from collections.abc import Callable
 from pathlib import Path
 
 import pytest
+from tests.conftest import LEFTOVER
 
 Render = Callable[..., Path]
 SECTIONS = [
@@ -52,7 +54,7 @@ def test_numbers_come_from_the_generated_file(render: Render) -> None:
     assert "\\newcommand{\\rnum}" in numbers.read_text()
 
 
-@pytest.mark.parametrize("venue", ["iclr", "neurips", "article"])
+@pytest.mark.parametrize("venue", ["iclr", "neurips", "icml", "article"])
 def test_submission_is_anonymous_by_default(
     venue: str, render: Render
 ) -> None:
@@ -74,6 +76,69 @@ def test_neurips_camera_ready_uses_the_final_option(render: Render) -> None:
         render("paper", venue="neurips", venue_year="2026") / "main.tex"
     ).read_text()
     assert "\\usepackage[final]{neurips_2026}" in main
+
+
+def test_icml_render_uses_official_style_macros(render: Render) -> None:
+    project = render("paper", venue="icml", venue_year="2026")
+    main = (project / "main.tex").read_text()
+    for path in project.rglob("*"):
+        if path.is_file():
+            assert not LEFTOVER.search(path.read_text()), path.relative_to(
+                project
+            )
+    # ICML's example: no option is the blind submission, [accepted] is
+    # camera-ready, and [preprint] is a non-anonymous arXiv copy.
+    assert "\\else\n  % No option is ICML's blind submission" in main
+    assert "  \\usepackage{icml2026}\n\\fi" in main
+    assert "[preprint]{icml" not in main
+    assert "\\usepackage[accepted]{icml2026}" in main
+    assert "\\icmltitle{My Project}" in main
+    assert "\\begin{icmlauthorlist}" in main
+    assert "\\icmlaffiliation{" in main
+    assert "\\icmlkeywords{" in main
+    assert "\\bibliographystyle{icml2026}" in main
+
+
+def test_icml_venue_target_uses_the_rendered_year(render: Render) -> None:
+    makefile = (
+        render("paper", venue="icml", venue_year="2026") / "Makefile"
+    ).read_text()
+    assert (
+        "https://media.icml.cc/Conferences/ICML$(YEAR)/Styles/"
+        "icml$(YEAR).zip"
+    ) in makefile
+    assert (
+        "unzip -o -j icml$(YEAR).zip '*.sty' '*.bst' " "-d venue/icml$(YEAR)"
+    ) in makefile
+
+
+@pytest.mark.parametrize("venue", ["iclr", "neurips", "article"])
+def test_non_icml_makefiles_have_no_icml_fetch_settings(
+    venue: str, render: Render
+) -> None:
+    makefile = (render("paper", venue=venue) / "Makefile").read_text()
+    assert "ICML_URL" not in makefile
+    assert "media.icml.cc" not in makefile
+
+
+def test_icml_unpublished_year_fails_without_partial_kit(
+    render: Render, tmp_path: Path
+) -> None:
+    project = render("paper", venue="icml", venue_year="2027")
+    missing_zip = tmp_path / "not-published.zip"
+    done = subprocess.run(
+        ["make", "venue", f"ICML_URL={missing_zip.as_uri()}"],
+        cwd=project,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    output = done.stdout + done.stderr
+    assert done.returncode != 0
+    assert "ICML 2027 style kit is not published" in output
+    assert "https://icml.cc" in output
+    assert "venue_year" in output
+    assert not (project / "venue" / "icml2027").exists()
 
 
 def test_no_kit_is_shipped(render: Render) -> None:

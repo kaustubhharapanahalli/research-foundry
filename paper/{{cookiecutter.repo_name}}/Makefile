@@ -6,6 +6,9 @@
 TEXLIVE_IMAGE := texlive/texlive:TL2025-historic@sha256:7056390eac37715fd3e01875037ceb4016cb17d44c611f7bbbfa7a012007979f
 VENUE := {{ cookiecutter.venue }}
 YEAR := {{ cookiecutter.venue_year }}
+{%- if cookiecutter.venue == "icml" %}
+ICML_URL ?= https://media.icml.cc/Conferences/ICML$(YEAR)/Styles/icml$(YEAR).zip
+{%- endif %}
 LATEXMK := latexmk -outdir=build -jobname=paper -Werror \
 	-interaction=nonstopmode -halt-on-error
 UV_SYNC := uv sync $(if $(wildcard uv.lock),--locked,)
@@ -59,6 +62,15 @@ venue: ## Fetch the venue's style kit into venue/
 		https://media.neurips.cc/Conferences/NeurIPS$(YEAR)/Styles.zip
 	unzip -o -j build-styles.zip '*.sty' -d venue/neurips$(YEAR)
 	rm build-styles.zip
+{%- elif cookiecutter.venue == "icml" %}
+	@if ! curl -fLsS -o icml$(YEAR).zip "$(ICML_URL)"; then \
+		rm -f icml$(YEAR).zip; \
+		echo "The ICML $(YEAR) style kit is not published at $(ICML_URL). Check https://icml.cc for that year's author instructions, or set venue_year to a year whose kit is published and draft against it." >&2; \
+		exit 1; \
+	fi
+	@mkdir -p venue/icml$(YEAR) && \
+		unzip -o -j icml$(YEAR).zip '*.sty' '*.bst' -d venue/icml$(YEAR); \
+		status=$$?; rm -f icml$(YEAR).zip; exit $$status
 {%- else %}
 	@echo "The article layout needs no style kit."
 {%- endif %}

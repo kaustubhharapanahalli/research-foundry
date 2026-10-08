@@ -15,6 +15,13 @@
 \else
   \usepackage{neurips_{{ cookiecutter.venue_year }}}
 \fi
+{%- elif cookiecutter.venue == "icml" -%}
+\ifcameraready
+  \usepackage[accepted]{icml{{ cookiecutter.venue_year }}}
+\else
+  % No option is ICML's blind submission; [preprint] would name the authors.
+  \usepackage{icml{{ cookiecutter.venue_year }}}
+\fi
 {%- else -%}
 \usepackage[margin=1in]{geometry}
 \usepackage[numbers]{natbib}
@@ -26,12 +33,21 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{url}
+{% if cookiecutter.venue == "icml" -%}
+\usepackage{microtype}
+\usepackage{subcaption}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage[capitalize,noabbrev]{cleveref}
+{%- endif %}
 
 % Every reported number comes from here, generated from verified results.
 \input{generated/numbers}
 
+{% if cookiecutter.venue == "icml" -%}
+\icmltitlerunning{ {{- cookiecutter.paper_title -}} }
+{%- else %}
 \title{ {{- cookiecutter.paper_title -}} }
-
 \ifcameraready
   \author{Author names, filled in at camera-ready}
 \else
@@ -43,10 +59,32 @@
   \iclrfinalcopy
 \fi
 {%- endif %}
+{%- endif %}
 
 \begin{document}
 
+{% if cookiecutter.venue == "icml" -%}
+\twocolumn[
+  \icmltitle{ {{- cookiecutter.paper_title -}} }
+  \ifcameraready
+    \begin{icmlauthorlist}
+      \icmlauthor{Author names, filled in at camera-ready}{affiliation}
+    \end{icmlauthorlist}
+    \icmlaffiliation{affiliation}{Institution, City, Country}
+    \icmlcorrespondingauthor{Author name}{author@example.org}
+  \else
+    \begin{icmlauthorlist}
+      \icmlauthor{Anonymous authors}{anonymous}
+    \end{icmlauthorlist}
+    \icmlaffiliation{anonymous}{Anonymous affiliation}
+  \fi
+  \icmlkeywords{Machine Learning}
+  \vskip 0.3in
+]
+\printAffiliationsAndNotice{}
+{% else -%}
 \maketitle
+{% endif %}
 
 \begin{abstract}
   The abstract.
@@ -68,6 +106,8 @@
 \bibliographystyle{iclr{{ cookiecutter.venue_year }}_conference}
 {%- elif cookiecutter.venue == "neurips" -%}
 \bibliographystyle{plainnat}
+{%- elif cookiecutter.venue == "icml" -%}
+\bibliographystyle{icml{{ cookiecutter.venue_year }}}
 {%- else -%}
 \bibliographystyle{plainnat}
 {%- endif %}

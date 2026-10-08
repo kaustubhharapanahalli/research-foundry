@@ -49,6 +49,7 @@ VARIANTS: dict[str, tuple[str, dict[str, str]]] = {
     "workspace": ("workspace", {}),
     "paper-article": ("paper", {"venue": "article"}),
     "paper-iclr": ("paper", {"venue": "iclr", "venue_year": "2027"}),
+    "paper-icml": ("paper", {"venue": "icml", "venue_year": "2026"}),
     "software-django": (
         "software",
         {"backend_django": "yes", "frontend_nextjs": "no"},

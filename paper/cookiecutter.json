@@ -4,7 +4,7 @@
   "repo_base": "{{ cookiecutter.project_slug }}",
   "repo_name": "{{ cookiecutter.repo_base }}-paper",
   "paper_title": "{{ cookiecutter.project_name }}",
-  "venue": ["iclr", "neurips", "article"],
+  "venue": ["iclr", "neurips", "icml", "article"],
   "venue_year": "2027",
   "github_mirror": ["no", "yes"],
   "python_version": "3.14",
