@@ -11,8 +11,10 @@ moved once projects may have been generated from it.
 
 - The workspace template tracks presentation deck masters through Git LFS.
   Existing workspaces can pick this up with `cruft update`, then
-  `git lfs install --local`; if a master was already committed without LFS,
-  run `git lfs migrate import --include="*.pptx"`.
+  `make install`, which runs `git lfs install --local`. A `.pptx` or `.potx`
+  already committed without LFS, anywhere in the repository, converts in one
+  new commit with `git add --renormalize .` from a clean working tree;
+  earlier commits are not rewritten.
 - The paper template's ICML venue. `make venue` fetches the year-specific kit
   from ICML; the official 2026 kit is the latest available because the 2027
   kit was not published as of 2026-10-08. Existing papers can switch with

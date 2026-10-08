@@ -20,6 +20,14 @@ is for Foundry only; a generated project's releases follow its own
 2. **Pick the version.** A change a generated project must act on is a major
    version; a new template, answer or component is minor; a fix is a patch.
    Say which entries decided it.
+   - **Check the version floors.** A generated target can require a release
+     that has a command it runs. The workspace's `make layout-check` runs
+     `uvx --from 'research-foundry>=0.2.0'`, so it works only once 0.2.0 is
+     on the Python Package Index. If the release that first ships `layout`
+     gets a different number, change the floor everywhere it is
+     stated in the same pull request: search for `research-foundry>=0.2.0`
+     and `0.2.0 or later`, plus the layout checker's entry in
+     `CHANGELOG.md`.
 3. **Prepare the release pull request.** Move the entries below
    `## [Unreleased]` into `## [x.y.z] - YYYY-MM-DD`, using the Keep a
    Changelog groups Added, Changed, Deprecated, Removed, Fixed and Security.

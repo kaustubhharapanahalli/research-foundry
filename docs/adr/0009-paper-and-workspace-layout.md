@@ -83,3 +83,10 @@ four templates.
   macro file from verified results.
 - Tools can find the workspace registry and local-output exclusions without
   project-specific configuration.
+
+## Related decisions
+
+- [ADR 0012, the workspace path contract](0012-workspace-path-contract.md),
+  lists the workflow paths inside a workspace and how a workspace declares its
+  own additions. It narrows the workspace part of this decision without
+  changing it.

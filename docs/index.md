@@ -28,8 +28,11 @@ pip install research-foundry
 research-foundry new <template>
 ```
 
-Use `research-foundry templates` to list templates and
-`research-foundry questions <template>` to inspect a template's answers.
+Use `research-foundry templates` to list templates,
+`research-foundry questions <template>` to inspect a template's answers,
+`research-foundry check` and `research-foundry update` to compare a project
+with its template and apply updates, and `research-foundry layout` to check a
+workspace's paths.
 
 ## Model Context Protocol server
 
@@ -41,9 +44,14 @@ paths against the shipped contract.
 
 ## Checking a workspace's layout
 
-In a generated workspace, run `make layout-check` to compare its paths with
-the template. The check is read-only, and a path in backticks in `AGENTS.md`'s
-`## Local rules` section declares a workspace-specific deviation.
+In a generated workspace, run `make layout-check`, or
+`research-foundry layout <workspace-path>` from anywhere, to compare its paths
+with the template. The check is read-only, and a path in backticks in
+`AGENTS.md`'s `## Local rules` section declares a workspace-specific deviation.
+
+`make layout-check` needs research-foundry 0.2.0 or later. Until 0.2.0 is
+released, uv stops with "no solution" rather than running an older release
+that has no `layout` command.
 
 ## Citing research-foundry
 
