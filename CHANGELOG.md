@@ -15,6 +15,8 @@ moved once projects may have been generated from it.
   run `git lfs migrate import --include="*.pptx"`.
 - A workspace layout checker backed by a shipped, tested path contract,
   exposed through the command line and the Model Context Protocol server.
+  The `layout` command ships in the next release, 0.2.0; until then a
+  generated workspace's `make layout-check` stops with uv's "no solution".
 - The methodology template's `docs_domain` answer and GitHub Pages workflow,
   with a public-repository deployment guard and setup instructions.
 - The methodology template's `docs_theme` answer selects the generic Material

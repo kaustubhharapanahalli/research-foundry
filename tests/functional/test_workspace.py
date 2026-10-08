@@ -79,6 +79,19 @@ def test_a_pointer_to_synthesis_is_caught() -> None:
     assert _synthesis_pointers("write SYNTHESIS.md here") == ["SYNTHESIS.md"]
 
 
+def test_layout_check_requires_a_release_with_the_command(
+    render: Render,
+) -> None:
+    # 0.1.0 has no `layout`; the floor makes uv refuse instead of running it.
+    project = render("workspace")
+    recipe = (project / "Makefile").read_text().split("layout-check:", 1)[1]
+    assert (
+        "uvx --from 'research-foundry>=0.2.0' research-foundry layout ."
+        in recipe
+    )
+    assert "0.2.0 or later" in (project / "README.md").read_text()
+
+
 @pytest.mark.parametrize(
     ("path", "ignored"),
     [

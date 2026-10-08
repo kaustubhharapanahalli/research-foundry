@@ -26,5 +26,5 @@ fmt: ## Apply Prettier only
 ci: lint ## Exactly what CI runs
 {% include "base/template.mk" -%}
 
-layout-check: ## Check paths against the workspace template contract
-	uvx research-foundry layout .
+layout-check: ## Check paths against the template contract (needs research-foundry 0.2.0 or later)
+	uvx --from 'research-foundry>=0.2.0' research-foundry layout .
