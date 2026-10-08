@@ -33,7 +33,7 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{url}
-{% if cookiecutter.venue == "icml" -%}
+{%- if cookiecutter.venue == "icml" %}
 \usepackage{microtype}
 \usepackage{subcaption}
 \usepackage{mathtools}
@@ -46,8 +46,9 @@
 
 {% if cookiecutter.venue == "icml" -%}
 \icmltitlerunning{ {{- cookiecutter.paper_title -}} }
-{%- else %}
+{%- else -%}
 \title{ {{- cookiecutter.paper_title -}} }
+
 \ifcameraready
   \author{Author names, filled in at camera-ready}
 \else
@@ -82,9 +83,9 @@
   \vskip 0.3in
 ]
 \printAffiliationsAndNotice{}
-{% else -%}
+{%- else -%}
 \maketitle
-{% endif %}
+{%- endif %}
 
 \begin{abstract}
   The abstract.
