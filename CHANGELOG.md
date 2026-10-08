@@ -13,6 +13,8 @@ moved once projects may have been generated from it.
   Existing workspaces can pick this up with `cruft update`, then
   `git lfs install --local`; if a master was already committed without LFS,
   run `git lfs migrate import --include="*.pptx"`.
+- A workspace layout checker backed by a shipped, tested path contract,
+  exposed through the command line and the Model Context Protocol server.
 - The methodology template's `docs_domain` answer and GitHub Pages workflow,
   with a public-repository deployment guard and setup instructions.
 - The methodology template's `docs_theme` answer selects the generic Material

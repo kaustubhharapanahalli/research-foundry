@@ -21,6 +21,10 @@ timestamp: 2026-10-03T00:00:00Z
 
 ::: research_foundry.cruft
 
+## Workspace layout
+
+::: research_foundry.layout
+
 ## Model Context Protocol server
 
 ::: research_foundry.server

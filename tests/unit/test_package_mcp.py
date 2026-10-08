@@ -2,7 +2,10 @@
 
 from pathlib import Path
 
+import pytest
 from research_foundry import server
+from research_foundry.layout import LayoutFinding, LayoutResult
+from research_foundry.templates import FoundryError
 
 
 def test_list_templates_tool() -> None:
@@ -45,6 +48,38 @@ def test_check_project_tool_reports_a_corrective_error(tmp_path: Path) -> None:
     result = server.check_project(str(tmp_path))
     assert result["ok"] is False
     assert ".cruft.json" in str(result["error"])
+
+
+def test_check_layout_tool_reports_shared_checker_result(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """The read-only tool returns the layout findings without confirmation."""
+    result = LayoutResult((LayoutFinding("extra", "archive"),))
+    monkeypatch.setattr(server, "_check_layout", lambda _path: result)
+
+    checked = server.check_layout(str(tmp_path))
+
+    assert checked == {
+        "ok": True,
+        "findings": [{"kind": "extra", "path": "archive"}],
+        "report": "extra: archive",
+    }
+
+
+def test_check_layout_tool_returns_a_corrective_refusal(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The tool turns a checker refusal into a visible error."""
+
+    def refuse(_path: Path) -> LayoutResult:
+        raise FoundryError("not a Git repository")
+
+    monkeypatch.setattr(server, "_check_layout", refuse)
+
+    result = server.check_layout("/not-a-workspace")
+
+    assert result["ok"] is False
+    assert "not a Git repository" in str(result["error"])
 
 
 def test_update_project_requires_confirmation(tmp_path: Path) -> None:

@@ -1,0 +1,56 @@
+{
+  "about": "These are the paths workflow tools read and write in a workspace, so their names are fixed. A workspace may add to them and records each deviation in the Local rules section of AGENTS.md.",
+  "generated": [".cruft.json", "uv.lock"],
+  "entries": [
+    {
+      "path": "datasets/registry.yaml",
+      "kind": "file",
+      "used_by": "data adapters resolve dataset locations here"
+    },
+    {
+      "path": "methodology/theory/<block>.md",
+      "kind": "dir",
+      "used_by": "research notes keep each functional block's theory here"
+    },
+    {
+      "path": "lit-reviews/<paper>/",
+      "kind": "dir",
+      "used_by": "paper-specific literature notes live here"
+    },
+    {
+      "path": "baselines/<paper>/",
+      "kind": "dir",
+      "used_by": "baseline code and data adapters live here"
+    },
+    {
+      "path": "experiments/configs/*.yaml",
+      "kind": "dir",
+      "used_by": "the dispatcher reads experiment configs here"
+    },
+    {
+      "path": "results/<batch>/ACCEPTED.md",
+      "kind": "dir",
+      "used_by": "accepted run records are kept with each batch"
+    },
+    {
+      "path": "advisor-logs/advisor-sync-<date>.md",
+      "kind": "dir",
+      "used_by": "meeting records are kept by date here"
+    },
+    {
+      "path": ".agent-state/<name>.md",
+      "kind": "runtime",
+      "used_by": "working state stays outside version control"
+    },
+    {
+      "path": "AGENTS.md",
+      "kind": "file",
+      "used_by": "workspace instructions and Local rules are read here"
+    },
+    {
+      "path": "docs/",
+      "kind": "dir",
+      "used_by": "workspace documentation pages live here"
+    }
+  ]
+}

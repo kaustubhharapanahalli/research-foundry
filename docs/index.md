@@ -36,7 +36,14 @@ Use `research-foundry templates` to list templates and
 Run `research-foundry mcp` to start the Model Context Protocol (MCP) server over
 standard input and output. It can list templates, describe questions, plan a
 project without persistent output, and create or update a project only after
-explicit confirmation.
+explicit confirmation. The read-only `check_layout` tool checks workspace
+paths against the shipped contract.
+
+## Checking a workspace's layout
+
+In a generated workspace, run `make layout-check` to compare its paths with
+the template. The check is read-only, and a path in backticks in `AGENTS.md`'s
+`## Local rules` section declares a workspace-specific deviation.
 
 ## Citing research-foundry
 

@@ -31,6 +31,14 @@ make template-check
 `cruft check` and `make template-check` report whether the template has moved on;
 `cruft update` brings its changes into the generated repository for review.
 
+## Check a workspace's layout
+
+Run `make layout-check` in a generated workspace to compare its paths with the
+shipped template contract. It is read-only and is not part of `make ci`; the
+target uses `uvx` and may need network access. A path in backticks in the
+`## Local rules` section of `AGENTS.md` counts as a declared workspace
+deviation.
+
 ## Questions and output
 
 Where `workspace/cookiecutter.json` has no custom prompt, Cookiecutter displays

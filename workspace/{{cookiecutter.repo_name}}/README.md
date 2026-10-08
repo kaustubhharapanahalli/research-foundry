@@ -24,4 +24,5 @@ the paper in `{{ cookiecutter.repo_base }}-paper`.
 ```bash
 make install
 make ci
+make layout-check
 ```
