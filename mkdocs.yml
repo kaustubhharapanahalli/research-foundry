@@ -73,5 +73,6 @@ nav:
       - Run sidecars: adr/0008-run-sidecars.md
       - Paper and workspace layout: adr/0009-paper-and-workspace-layout.md
       - Python floor: adr/0010-python-floor.md
+      - MkDocs for generated methodology documentation: adr/0011-methodology-mkdocs.md
       - Workspace path contract: adr/0012-workspace-path-contract.md
   - API reference: reference.md

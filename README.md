@@ -91,6 +91,11 @@ research-foundry check <project-path>
 research-foundry update <project-path>
 ```
 
+`research-foundry layout <workspace-path>` checks a generated workspace's paths
+against the template's path contract, read-only. Each path argument defaults to
+the current directory. `layout` exits 0 when the layout matches, 1 when it
+reports findings, and 2 when the path is not a workspace it can check.
+
 As an alternative, cruft can generate directly from the public repository:
 
 ```bash
@@ -129,6 +134,11 @@ From a generated workspace, run `make layout-check` to compare its paths with
 the shipped template contract. The check is read-only. A path in backticks in
 the `## Local rules` section of `AGENTS.md` declares a workspace-specific
 deviation.
+
+`make layout-check` needs research-foundry 0.2.0 or later. The target runs
+`uvx --from 'research-foundry>=0.2.0' research-foundry layout .`, so until
+0.2.0 is released, uv stops with "no solution" rather than running an older
+release that has no `layout` command.
 
 ## How the shared base works
 

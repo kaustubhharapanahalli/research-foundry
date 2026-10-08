@@ -37,7 +37,13 @@ Run `make layout-check` in a generated workspace to compare its paths with the
 shipped template contract. It is read-only and is not part of `make ci`; the
 target uses `uvx` and may need network access. A path in backticks in the
 `## Local rules` section of `AGENTS.md` counts as a declared workspace
-deviation.
+deviation. `research-foundry layout <workspace-path>` runs the same check from
+anywhere.
+
+`make layout-check` needs research-foundry 0.2.0 or later. Until 0.2.0 is
+released, uv stops with "no solution" rather than running an older release
+that has no `layout` command. The contract and the checker are recorded in
+[the workspace path contract](../adr/0012-workspace-path-contract.md).
 
 ## Questions and output
 
@@ -65,6 +71,26 @@ architectural decision. The template has no optional directories to remove.
 Deck masters in `presentations/` are tracked through Git LFS; install Git LFS,
 then run `make install` in the generated workspace to set it up.
 
+### Moving an existing workspace's decks to Git LFS
+
+A workspace made before deck masters moved to Git LFS gets the LFS rules in
+`.gitattributes` from `cruft update`. Install Git LFS and run `make install`,
+which runs `git lfs install --local`. The rules cover every `.pptx` and
+`.potx` in the repository, not only `presentations/`. A deck committed before
+the rules, anywhere in the repository, is still an ordinary Git file, and
+`git status` shows it as modified. Start from a clean working tree, because
+`git add --renormalize .` also stages any other change to a tracked file, then
+convert every such deck in one new commit:
+
+```bash
+git add --renormalize .
+git commit -m "Track deck masters with Git LFS"
+```
+
+Earlier commits are not rewritten, so the old copies stay in history.
+Removing them from history means rewriting every commit and every
+collaborator re-cloning, which is a separate decision from the update.
+
 ## Refused combinations
 
 The pre-generation hook rejects a `python_version` below 3.12 with:
@@ -74,4 +100,5 @@ The pre-generation hook rejects a `python_version` below 3.12 with:
 
 - [Cookiecutter templates, updated with cruft, sharing one base](../adr/0001-cookiecutter-cruft-shared-base.md)
 - [The paper and workspace layout](../adr/0009-paper-and-workspace-layout.md)
+- [The workspace path contract](../adr/0012-workspace-path-contract.md)
 - [Python 3.12 support floor](../adr/0010-python-floor.md)

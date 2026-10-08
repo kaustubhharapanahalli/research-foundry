@@ -37,7 +37,7 @@ frontmatter (`type`, `title`, `description`, `resource`, `tags`,
 - `make template-check`: whether the foundry template has moved on;
   `cruft update` brings the change in. Not part of `make ci`.
 - `make layout-check`: whether workspace paths match the template contract.
-  Not part of `make ci`.
+  Not part of `make ci`. Needs research-foundry 0.2.0 or later.
 
 ## Local rules
 

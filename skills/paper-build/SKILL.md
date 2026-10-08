@@ -15,7 +15,17 @@ file Overleaf may also have edited.
 
 1. **`make install`** once, for the text checks.
 2. **`make venue`**, for a venue that has a kit. It fetches the style files
-   into `venue/`. Commit `venue/` so Overleaf has it.
+   into `venue/`. Commit `venue/` so Overleaf has it. For ICML, it fetches
+   the kit for `venue_year` from ICML's site and refuses, leaving no partial
+   `venue/icml<year>/`, when that year's kit is not published or does not
+   unpack. When ICML support was added on 2026-10-08, the latest published
+   kit was 2026 (`docs/templates/paper.md`). Never rename one year's kit as
+   another's. Set `venue_year` to a published year and draft against it:
+
+   ```bash
+   cruft update --variables-to-update '{"venue_year": "2026"}'
+   ```
+
 3. **`make pdf`** builds `build/paper.pdf` with latexmk. An undefined
    reference or citation fails it.
 4. **`make check`** builds, then refuses overfull lines and ChkTeX warnings
@@ -41,3 +51,6 @@ image.
 
 Do not call the paper ready, and say which step stopped it, when `make check`
 or `make arxiv-verify` fails. Report the exact lines from `build/paper.log`.
+
+When `make venue` refuses because the year's kit is not published, report its
+message. Do not fetch a kit from anywhere else.

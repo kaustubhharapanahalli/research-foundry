@@ -34,6 +34,22 @@ at a time.
 6. **Commit the update on its own**, with the foundry version in the message
    and one line per change the project felt.
 
+## Workspaces
+
+- **Deck masters move to Git LFS** when an update brings the LFS rules in
+  `.gitattributes`. `make install` runs `git lfs install --local`, and says
+  so if Git LFS is missing; install it before going on. A deck committed
+  before the rules, anywhere in the repository, then shows as modified. With
+  the update itself committed and the tree clean, convert every such deck in
+  its own commit with `git add --renormalize .`, as
+  `docs/templates/workspace.md` describes. Do not rewrite history to drop
+  the old copies as part of an update; that needs the owner's recorded yes.
+- **Check the layout after the update.** `make layout-check` reports paths
+  the update moved or the workspace added without naming them in its
+  `AGENTS.md` Local rules (ADR 0012). It needs research-foundry 0.2.0 or
+  later; before that release, uv stops with "no solution". Report what it
+  finds rather than moving files to silence it.
+
 ## Refusals
 
 Do not finish the update, and say why, when:

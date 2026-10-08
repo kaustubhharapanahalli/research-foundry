@@ -18,6 +18,10 @@ still exist or whether additions have been declared. A contract beside the
 workspace template gives the package and generated workspace one tested
 source of expected paths.
 
+[ADR 0009, the paper and workspace layout](0009-paper-and-workspace-layout.md),
+fixes the workspace's names, its dataset registry and its ignored local
+outputs. This decision narrows it to a checked list of workflow paths.
+
 ## Decision
 
 Ship `workspace/contract.json` outside the rendered project directory. The

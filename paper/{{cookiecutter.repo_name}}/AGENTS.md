@@ -14,6 +14,13 @@ paper's main source.
 - `make pdf` writes `build/paper.pdf`. An undefined reference or citation
   fails the build.
 - `make check` also fails on overfull lines and on ChkTeX warnings.
+{%- if cookiecutter.venue != "article" %}
+- `make venue` fetches the venue's style kit into `venue/`; commit `venue/`
+  so Overleaf has it.
+{%- endif %}
+{%- if cookiecutter.venue == "icml" %} It refuses a `venue_year` whose ICML
+  kit is not published; never substitute another year's kit.
+{%- endif %}
 - `make arxiv` writes a cleaned copy to `build/arxiv`, with the venue kit
   beside `main.tex`. `make arxiv-verify` compiles that copy on its own in
   the pinned image; an upload is ready only when it passes.
