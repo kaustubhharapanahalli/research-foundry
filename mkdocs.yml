@@ -75,4 +75,5 @@ nav:
       - Python floor: adr/0010-python-floor.md
       - MkDocs for generated methodology documentation: adr/0011-methodology-mkdocs.md
       - Workspace path contract: adr/0012-workspace-path-contract.md
+      - Frontend single-page app: adr/0013-frontend-single-page-app.md
   - API reference: reference.md
