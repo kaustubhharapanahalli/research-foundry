@@ -1,5 +1,6 @@
 """The workspace template keeps every path the research tools rely on."""
 
+import re
 import subprocess
 from collections.abc import Callable
 from pathlib import Path
@@ -38,10 +39,43 @@ def test_dataset_registry_starts_empty(render: Render) -> None:
     assert "benchmark_ref" in text
 
 
-def test_synthesis_is_not_created_empty(render: Render) -> None:
-    # write-section stops when SYNTHESIS.md is missing; an empty one would
-    # defeat that check.
-    assert not (render("workspace") / "lit-reviews/SYNTHESIS.md").exists()
+def _synthesis_pointers(text: str) -> list[str]:
+    """Return each mention of SYNTHESIS.md that is not "no `SYNTHESIS.md`"."""
+    return [
+        match.group(0)
+        for match in re.finditer(
+            r"(?:\bno )?`?(?:lit-reviews/)?SYNTHESIS\.md`?",
+            " ".join(text.split()),
+        )
+        if not match.group(0).startswith("no `SYNTHESIS.md`")
+    ]
+
+
+def test_workspace_keeps_no_synthesis_file(render: Render) -> None:
+    # The literature synthesis is read across the review records for each
+    # paper, so no file may tell a workspace to keep one. Saying there is
+    # none is allowed, and is the one way the name may appear.
+    project = render("workspace")
+    assert not (project / "lit-reviews/SYNTHESIS.md").exists()
+    found = {
+        str(path.relative_to(project)): _synthesis_pointers(
+            path.read_text(errors="replace")
+        )
+        for path in project.rglob("*")
+        if path.is_file()
+    }
+    assert not {name: hits for name, hits in found.items() if hits}
+    agents = " ".join((project / "AGENTS.md").read_text().split())
+    assert "There is no `SYNTHESIS.md`" in agents
+
+
+def test_a_pointer_to_synthesis_is_caught() -> None:
+    old = "`lit-reviews/SYNTHESIS.md` once the review is synthesised."
+    assert _synthesis_pointers(old) == ["`lit-reviews/SYNTHESIS.md`"]
+    assert (
+        _synthesis_pointers("There is no `SYNTHESIS.md`: the synthesis") == []
+    )
+    assert _synthesis_pointers("write SYNTHESIS.md here") == ["SYNTHESIS.md"]
 
 
 @pytest.mark.parametrize(

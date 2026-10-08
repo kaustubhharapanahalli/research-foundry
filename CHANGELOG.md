@@ -18,6 +18,8 @@ moved once projects may have been generated from it.
 
 ### Changed
 
+- The workspace template no longer points to a separate literature synthesis
+  file; existing workspaces can pick up the change with `cruft update`.
 - The methodology template's generated documentation moves from Sphinx to
   MkDocs Material and mkdocstrings, with strict builds, API module coverage,
   and no generated Read the Docs configuration. Existing projects can apply

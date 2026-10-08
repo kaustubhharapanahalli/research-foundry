@@ -12,8 +12,9 @@ Skills and tools read and write these paths, so their names are fixed:
 - `datasets/registry.yaml`: where this project keeps each benchmark, by its
   canonical slug.
 - `methodology/theory/<block>.md`: one theory document per functional block.
-- `lit-reviews/<paper>/`: STORM sessions and drafts for one paper, and
-  `lit-reviews/SYNTHESIS.md` once the review is synthesised.
+- `lit-reviews/<paper>/`: STORM sessions and drafts for one paper. There is no
+  `SYNTHESIS.md`: the literature synthesis is read across the review records
+  for each paper, not kept in a file of its own.
 - `baselines/<paper>/`: a vendored baseline and its data adapter. Copy it for
   a variant; never edit it in place.
 - `experiments/configs/*.yaml`: experiment configs, which dispatch reads.
