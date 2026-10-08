@@ -21,6 +21,8 @@ moved once projects may have been generated from it.
   `cruft update --variables-to-update '{"venue": "icml", "venue_year": "2026"}'`.
 - A workspace layout checker backed by a shipped, tested path contract,
   exposed through the command line and the Model Context Protocol server.
+  Only a `Moved:` or `Dropped:` rule excuses a missing required path, and a
+  repository the checker does not recognize as a workspace exits 2.
   The `layout` command ships in the next release, 0.2.0; until then a
   generated workspace's `make layout-check` stops with uv's "no solution".
 - The methodology template's `docs_domain` answer and GitHub Pages workflow,
