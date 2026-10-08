@@ -28,7 +28,7 @@ def test_questions_json_describes_defaults_and_choices(
         "name": "venue",
         "prompt": "Venue style (article is a plain preprint layout)",
         "default": "iclr",
-        "choices": ["iclr", "neurips", "article"],
+        "choices": ["iclr", "neurips", "icml", "article"],
     }
     assert by_name["project_slug"]["default"] == "my-project"
     assert all(not name.startswith("_") for name in by_name)

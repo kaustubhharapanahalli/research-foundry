@@ -13,6 +13,10 @@ moved once projects may have been generated from it.
   Existing workspaces can pick this up with `cruft update`, then
   `git lfs install --local`; if a master was already committed without LFS,
   run `git lfs migrate import --include="*.pptx"`.
+- The paper template's ICML venue. `make venue` fetches the year-specific kit
+  from ICML; the official 2026 kit is the latest available because the 2027
+  kit was not published as of 2026-10-08. Existing papers can switch with
+  `cruft update --variables-to-update '{"venue": "icml", "venue_year": "2026"}'`.
 - The methodology template's `docs_domain` answer and GitHub Pages workflow,
   with a public-repository deployment guard and setup instructions.
 - The methodology template's `docs_theme` answer selects the generic Material

@@ -39,3 +39,8 @@ and `make arxiv-container` build inside the pinned TeX Live image instead.
 - `references.bib`: the bibliography, exported from Zotero by Better BibTeX.
 - `tables/`, `figures/`: generated from results, and committed.
 - `venue/`: the venue's style kit, fetched by `make venue`.
+{%- if cookiecutter.venue == "icml" %}
+
+For ICML, `make venue` fetches the kit for `venue_year` from ICML's site, and
+refuses if that year's kit is not published yet.
+{%- endif %}
