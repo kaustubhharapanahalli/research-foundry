@@ -161,7 +161,7 @@ reading settings at request time (one build per environment).
 Settled before this record is accepted.
 
 1. **How the built files are served in production.** Whatever serves them must answer every
-   path the app routes, such as `/dish/akki-rotti`, with the same `index.html`, so a refreshed
+   path the app routes, such as `/items/42`, with the same `index.html`, so a refreshed
    page or a shared link is not a 404 (the portfolio runs `serve -s build`, single-page mode).
    Either a small static server on its own
    origin, with CORS as above, or, when `proxy_caddy` is on, Caddy serving the files and routing
