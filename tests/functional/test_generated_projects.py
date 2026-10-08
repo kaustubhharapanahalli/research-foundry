@@ -182,9 +182,17 @@ def test_paper_icml_kit_builds_and_arxiv_carries_it(
 ) -> None:
     kind, answers = VARIANTS["paper-icml"]
     project = _generate(kind, answers, tmp_path)
-    for target in ("pdf", "check", "arxiv"):
+    # Use the pinned TeX image when this machine has no latexmk.
+    targets = (
+        ("pdf", "check", "arxiv")
+        if shutil.which("latexmk")
+        else ("check-container", "arxiv-container")
+    )
+    for target in targets:
         done = _run(["make", target], project)
         assert done.returncode == 0, done.stdout[-3000:] + done.stderr[-2000:]
+    paper_pdf = project / "build" / "paper.pdf"
+    assert paper_pdf.is_file() and paper_pdf.stat().st_size > 0
     assert (project / "build" / "arxiv" / "icml2026.sty").is_file()
 
 
