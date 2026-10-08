@@ -14,7 +14,9 @@ the paper in `{{ cookiecutter.repo_base }}-paper`.
 - `experiments/configs/`: experiment configs.
 - `results/`: run output. Only each batch's `ACCEPTED.md` is tracked.
 - `advisor-logs/`: one record per advisor meeting.
-- `presentations/`: decks; shared styles in `presentations/_base/`.
+- `presentations/`: decks; shared styles in `presentations/_base/`. Deck
+  masters are tracked through Git LFS; install Git LFS, then `make install`
+  sets it up.
 - `docs/adr/`: decisions about this workspace.
 
 ## Checks

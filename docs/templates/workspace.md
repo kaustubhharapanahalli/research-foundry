@@ -54,6 +54,8 @@ continuous integration, and Make files; `datasets/registry.yaml`;
 `advisor-logs/`, `baselines/`, `experiments/configs/`, `lit-reviews/`,
 `methodology/theory/`, `presentations/`, and `results/`; and the workspace layout
 architectural decision. The template has no optional directories to remove.
+Deck masters in `presentations/` are tracked through Git LFS; install Git LFS,
+then run `make install` in the generated workspace to set it up.
 
 ## Refused combinations
 
