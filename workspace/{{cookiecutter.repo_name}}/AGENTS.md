@@ -21,6 +21,8 @@ Skills and tools read and write these paths, so their names are fixed:
 - `results/<batch>/`: run output, untracked, except each batch's `ACCEPTED.md`.
 - `advisor-logs/advisor-sync-<date>.md`: one record per advisor meeting.
 - `presentations/<deck>/`: decks, with shared styles in `presentations/_base/`.
+  Deck masters are tracked through Git LFS; Git LFS must be installed and
+  `make install` sets it up.
 - `docs/adr/`: decisions about this workspace.
 
 Every Markdown document except README, AGENTS and CHANGELOG carries OKF

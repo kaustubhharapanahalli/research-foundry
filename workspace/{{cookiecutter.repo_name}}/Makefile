@@ -7,6 +7,11 @@ install: ## Install the locked tools and the git hook
 	$(UV_SYNC)
 	@if git rev-parse --git-dir >/dev/null 2>&1; then \
 		uv run pre-commit install; \
+		if git lfs version >/dev/null 2>&1; then \
+			git lfs install --local; \
+		else \
+			echo "Git LFS is not installed; install it from https://git-lfs.com/ to track presentation decks."; \
+		fi; \
 	else \
 		echo "Not a git repository yet: run git init, then make install again."; \
 	fi
