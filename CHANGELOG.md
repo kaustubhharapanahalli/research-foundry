@@ -7,6 +7,8 @@ moved once projects may have been generated from it.
 
 ## [Unreleased]
 
+## [0.2.0rc1] - 2026-10-08
+
 ### Added
 
 - The workspace template tracks presentation deck masters through Git LFS.
