@@ -24,4 +24,7 @@ the paper in `{{ cookiecutter.repo_base }}-paper`.
 ```bash
 make install
 make ci
+make layout-check
 ```
+
+`make layout-check` needs research-foundry 0.2.0 or later.

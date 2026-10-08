@@ -1,7 +1,7 @@
 # The only command surface. CI calls `make install` and `make ci` only.
 UV_SYNC := uv sync $(if $(wildcard uv.lock),--locked,)
 
-.PHONY: install lint fmt ci
+.PHONY: install lint fmt ci layout-check
 
 install: ## Install the locked tools and the git hook
 	$(UV_SYNC)
@@ -25,3 +25,6 @@ fmt: ## Apply Prettier only
 
 ci: lint ## Exactly what CI runs
 {% include "base/template.mk" -%}
+
+layout-check: ## Check paths against the template contract (needs research-foundry 0.2.0 or later)
+	uvx --from 'research-foundry>=0.2.0' research-foundry layout .

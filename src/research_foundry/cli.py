@@ -14,6 +14,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from research_foundry.cruft import check_project, update_project
+from research_foundry.layout import check_layout
 from research_foundry.skills import main as install_skills_main
 from research_foundry.templates import (
     FoundryError,
@@ -44,6 +45,8 @@ def _parser() -> argparse.ArgumentParser:
     update = commands.add_parser("update", help="apply template updates")
     update.add_argument("path", nargs="?", type=Path, default=Path("."))
     update.add_argument("--yes", action="store_true")
+    layout = commands.add_parser("layout", help="check a workspace's layout")
+    layout.add_argument("path", nargs="?", type=Path, default=Path("."))
     install = commands.add_parser(
         "install-skills", help="install the maintained agent skills"
     )
@@ -68,7 +71,7 @@ def _answers(pairs: Sequence[str]) -> dict[str, str]:
     return result
 
 
-def main(  # pylint: disable=too-many-return-statements
+def main(  # pylint: disable=too-many-branches,too-many-return-statements
     argv: Sequence[str] | None = None,
 ) -> int:
     """Run the research-foundry command-line interface.
@@ -116,6 +119,10 @@ def main(  # pylint: disable=too-many-return-statements
             return 0 if check_project(args.path) else 1
         if args.command == "update":
             return 0 if update_project(args.path, yes=args.yes) else 1
+        if args.command == "layout":
+            result = check_layout(args.path)
+            print(result.report)
+            return 0 if not result.findings else 1
         if args.command == "install-skills":
             modes = [
                 flag

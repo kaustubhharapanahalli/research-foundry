@@ -36,11 +36,14 @@ frontmatter (`type`, `title`, `description`, `resource`, `tags`,
 - `make ci`: exactly what CI runs.
 - `make template-check`: whether the foundry template has moved on;
   `cruft update` brings the change in. Not part of `make ci`.
+- `make layout-check`: whether workspace paths match the template contract.
+  Not part of `make ci`.
 
 ## Local rules
 
 Rules here override the global standards for this workspace only. Name the
 global rule, the override, and why. A rule that is not written here does not
-apply.
+apply. A path named in backticks here counts as declared for
+`make layout-check`.
 
 _None yet._

@@ -119,9 +119,16 @@ research-foundry mcp
 ```
 
 It exposes `list_templates`, `describe_questions`, `plan_project`,
-`create_project`, `check_project` and `update_project`. Planning renders only
-inside a temporary directory. Creation and update refuse to write until their
-`confirm` argument is `true`.
+`create_project`, `check_project`, `check_layout` and `update_project`.
+Planning renders only inside a temporary directory. Creation and update refuse
+to write until their `confirm` argument is `true`; `check_layout` is read-only.
+
+## Checking a workspace's layout
+
+From a generated workspace, run `make layout-check` to compare its paths with
+the shipped template contract. The check is read-only. A path in backticks in
+the `## Local rules` section of `AGENTS.md` declares a workspace-specific
+deviation.
 
 ## How the shared base works
 
