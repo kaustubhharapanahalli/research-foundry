@@ -17,6 +17,10 @@ moved once projects may have been generated from it.
   from ICML; the official 2026 kit is the latest available because the 2027
   kit was not published as of 2026-10-08. Existing papers can switch with
   `cruft update --variables-to-update '{"venue": "icml", "venue_year": "2026"}'`.
+- A workspace layout checker backed by a shipped, tested path contract,
+  exposed through the command line and the Model Context Protocol server.
+  The `layout` command ships in the next release, 0.2.0; until then a
+  generated workspace's `make layout-check` stops with uv's "no solution".
 - The methodology template's `docs_domain` answer and GitHub Pages workflow,
   with a public-repository deployment guard and setup instructions.
 - The methodology template's `docs_theme` answer selects the generic Material

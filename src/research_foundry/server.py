@@ -16,6 +16,7 @@ from mcp.server.mcpserver import MCPServer as FastMCP
 from research_foundry import __version__
 from research_foundry.cruft import check_project as _check_project
 from research_foundry.cruft import update_project as _update_project
+from research_foundry.layout import check_layout as _check_layout
 from research_foundry.templates import (
     FoundryError,
     HookRefusal,
@@ -43,6 +44,8 @@ class ToolResult(TypedDict, total=False):
     path: str
     up_to_date: bool
     updated: bool
+    findings: list[dict[str, str]]
+    report: str
 
 
 server = FastMCP("research-foundry", version=__version__)
@@ -179,6 +182,34 @@ def check_project(path: str) -> ToolResult:
 
 
 @server.tool()
+def check_layout(path: str) -> ToolResult:
+    """Check a workspace's paths against the shipped template contract.
+
+    Args:
+        path: The workspace root directory.
+
+    Returns:
+        The report and findings, or a corrective refusal.
+
+    Examples:
+        >>> check_layout("/path/that/does/not/exist")["ok"]
+        False
+    """
+    try:
+        result = _check_layout(Path(path))
+    except FoundryError as error:
+        return {"ok": False, "error": str(error)}
+    return {
+        "ok": True,
+        "findings": [
+            {"kind": finding.kind, "path": finding.path}
+            for finding in result.findings
+        ],
+        "report": result.report,
+    }
+
+
+@server.tool()
 def update_project(path: str, confirm: bool) -> ToolResult:
     """Update a generated project after explicit confirmation.
 
@@ -236,6 +267,7 @@ def run() -> None:
 __all__ = [
     "ToolResult",
     "check_project",
+    "check_layout",
     "create_project",
     "describe_questions",
     "list_templates",

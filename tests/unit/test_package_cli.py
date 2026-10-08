@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pytest
 from research_foundry import cli, server
+from research_foundry.layout import LayoutFinding, LayoutResult
+from research_foundry.templates import FoundryError
 
 
 def test_templates_lists_the_catalog(
@@ -48,6 +50,43 @@ def test_check_returns_one_when_a_project_is_behind(
     """The check command maps cruft's behind result to exit status one."""
     monkeypatch.setattr(cli, "check_project", lambda _path: False)
     assert cli.main(["check", "/project"]) == 1
+
+
+def test_layout_command_prints_a_success_report(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The layout command prints the shared checker report."""
+    monkeypatch.setattr(cli, "check_layout", lambda _path: LayoutResult(()))
+
+    assert cli.main(["layout"]) == 0
+    assert capsys.readouterr().out.strip() == (
+        "layout matches the template contract"
+    )
+
+
+def test_layout_command_returns_one_for_findings(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The layout command uses exit status one when paths differ."""
+    result = LayoutResult((LayoutFinding("extra", "archive"),))
+    monkeypatch.setattr(cli, "check_layout", lambda _path: result)
+
+    assert cli.main(["layout", "/workspace"]) == 1
+    assert capsys.readouterr().out.strip() == "extra: archive"
+
+
+def test_layout_command_returns_two_for_a_refusal(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A refused workspace prints its corrective error to standard error."""
+
+    def refuse(_path: Path) -> LayoutResult:
+        raise FoundryError("initialize Git in the workspace root and retry")
+
+    monkeypatch.setattr(cli, "check_layout", refuse)
+
+    assert cli.main(["layout", "/workspace"]) == 2
+    assert "initialize Git" in capsys.readouterr().err
 
 
 def test_update_passes_the_confirmation_flag(
