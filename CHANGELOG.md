@@ -9,6 +9,10 @@ moved once projects may have been generated from it.
 
 ### Added
 
+- The workspace template tracks presentation deck masters through Git LFS.
+  Existing workspaces can pick this up with `cruft update`, then
+  `git lfs install --local`; if a master was already committed without LFS,
+  run `git lfs migrate import --include="*.pptx"`.
 - The methodology template's `docs_domain` answer and GitHub Pages workflow,
   with a public-repository deployment guard and setup instructions.
 - The methodology template's `docs_theme` answer selects the generic Material
