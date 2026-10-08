@@ -70,7 +70,9 @@ venue: ## Fetch the venue's style kit into venue/
 	fi
 	@mkdir -p venue/icml$(YEAR) && \
 		unzip -o -j icml$(YEAR).zip '*.sty' '*.bst' -d venue/icml$(YEAR); \
-		status=$$?; rm -f icml$(YEAR).zip; exit $$status
+		status=$$?; rm -f icml$(YEAR).zip; \
+		if [ $$status -ne 0 ]; then rm -rf venue/icml$(YEAR); fi; \
+		exit $$status
 {%- else %}
 	@echo "The article layout needs no style kit."
 {%- endif %}

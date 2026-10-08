@@ -141,6 +141,24 @@ def test_icml_unpublished_year_fails_without_partial_kit(
     assert not (project / "venue" / "icml2027").exists()
 
 
+def test_icml_corrupt_kit_fails_without_partial_kit(
+    render: Render, tmp_path: Path
+) -> None:
+    project = render("paper", venue="icml", venue_year="2026")
+    corrupt_zip = tmp_path / "truncated.zip"
+    corrupt_zip.write_bytes(b"PK\x03\x04 not a whole archive")
+    done = subprocess.run(
+        ["make", "venue", f"ICML_URL={corrupt_zip.as_uri()}"],
+        cwd=project,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert done.returncode != 0
+    assert not (project / "venue" / "icml2026").exists()
+    assert not (project / "icml2026.zip").exists()
+
+
 def test_no_kit_is_shipped(render: Render) -> None:
     # Venues state no licence for redistributing their kits.
     venue = render("paper", venue="iclr") / "venue"
