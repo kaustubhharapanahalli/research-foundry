@@ -177,6 +177,18 @@ def test_paper_arxiv_copy_builds_on_its_own(
 
 
 @pytest.mark.heavy
+def test_paper_icml_kit_builds_and_arxiv_carries_it(
+    tmp_path: Path,
+) -> None:
+    kind, answers = VARIANTS["paper-icml"]
+    project = _generate(kind, answers, tmp_path)
+    for target in ("pdf", "check", "arxiv"):
+        done = _run(["make", target], project)
+        assert done.returncode == 0, done.stdout[-3000:] + done.stderr[-2000:]
+    assert (project / "build" / "arxiv" / "icml2026.sty").is_file()
+
+
+@pytest.mark.heavy
 def test_software_lint_refuses(tmp_path: Path) -> None:
     project = _generate("software", {"frontend_nextjs": "no"}, tmp_path)
     backend = project / "backend"
