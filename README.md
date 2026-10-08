@@ -132,8 +132,11 @@ to write until their `confirm` argument is `true`; `check_layout` is read-only.
 
 From a generated workspace, run `make layout-check` to compare its paths with
 the shipped template contract. The check is read-only. A path in backticks in
-the `## Local rules` section of `AGENTS.md` declares a workspace-specific
-deviation.
+the `## Local rules` section of `AGENTS.md` declares an addition; a required
+path that moved or was dropped needs a `Moved:` or `Dropped:` rule. The command
+exits 0 when the layout matches, 1 when it reports findings, and 2 when the
+repository is not recognized as a workspace. See
+[ADR 0012](docs/adr/0012-workspace-path-contract.md) for the path contract.
 
 `make layout-check` needs research-foundry 0.2.0 or later. The target runs
 `uvx --from 'research-foundry>=0.2.0' research-foundry layout .`, so until

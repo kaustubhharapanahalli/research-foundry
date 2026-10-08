@@ -8,6 +8,7 @@ Examples:
 from __future__ import annotations
 
 import json
+import posixpath
 import re
 import subprocess
 import tempfile
@@ -22,10 +23,14 @@ from research_foundry.templates import (
     template_root,
 )
 
-_LOCAL_RULES = re.compile(
-    r"^## Local rules\s*$\n(.*?)(?=^## |\Z)", re.MULTILINE | re.DOTALL
+_LOCAL_RULES_HEADING = re.compile(
+    r"^## Local rules(?:\s+.*)?\s*$", re.IGNORECASE
 )
-_BACKTICK = re.compile(r"`([^`]+)`")
+_LAYOUT_RULE = re.compile(
+    r"^\s*[-*+]\s+(?:\*\*(Moved|Dropped):\*\*|(Moved|Dropped):)\s*(.*)$",
+    re.IGNORECASE,
+)
+_BACKTICK = re.compile(r"`([^`\n]+)`")
 _KNOWN_EXTENSIONS = {
     ".bib",
     ".cjs",
@@ -102,6 +107,25 @@ class LayoutResult:
         )
 
 
+@dataclass(frozen=True)
+class LayoutRule:
+    """An explicit change to a required workspace path.
+
+    Args:
+        action: Either ``Moved`` or ``Dropped``.
+        target: The normalized contract path being changed.
+        new_path: The destination of a moved path, if applicable.
+
+    Examples:
+        >>> LayoutRule("Dropped", "baselines", None).action
+        'Dropped'
+    """
+
+    action: str
+    target: str
+    new_path: str | None
+
+
 def _contract_target(path: str) -> str:
     """Resolve a placeholder or glob to the fixed path prefix."""
     components = path.strip("/").split("/")
@@ -173,8 +197,8 @@ def _load_contract() -> tuple[set[str], list[dict[str, str]]]:
     return set(generated), parsed
 
 
-def _top_level_files(project: Path) -> set[str]:
-    """List indexed and visible untracked files, excluding ignored paths."""
+def _git_paths(project: Path) -> set[str]:
+    """List indexed and visible untracked paths, excluding ignored paths."""
     try:
         completed = subprocess.run(
             [
@@ -195,29 +219,44 @@ def _top_level_files(project: Path) -> set[str]:
             "workspace root and retry."
         ) from error
     return {
-        PurePosixPath(name.decode("utf-8")).parts[0]
+        PurePosixPath(name.decode("utf-8")).as_posix()
         for name in completed.stdout.split(b"\0")
         if name
     }
 
 
-def _require_workspace(project: Path) -> Mapping[str, object] | None:
+def _top_level_names(paths: set[str]) -> set[str]:
+    """Return each root item represented by a Git-listed path."""
+    return {PurePosixPath(path).parts[0] for path in paths}
+
+
+def _entry_is_present(entry: Mapping[str, str], git_paths: set[str]) -> bool:
+    """Check a contract entry using only paths visible to Git."""
+    target = entry["target"]
+    if entry["kind"] == "file":
+        return target in git_paths
+    if entry["kind"] == "dir":
+        return any(path.startswith(target + "/") for path in git_paths)
+    return True
+
+
+def _require_workspace(
+    project: Path,
+    entries: list[dict[str, str]],
+    git_paths: set[str],
+) -> Mapping[str, object] | None:
     """Refuse unrelated repositories and parse optional render metadata."""
     record_path = project / ".cruft.json"
     if not record_path.is_file():
-        if not any(
-            (project / candidate).exists()
-            for candidate in (
-                "AGENTS.md",
-                "datasets/registry.yaml",
-                "experiments/configs",
-                "methodology/theory",
-                "advisor-logs",
-            )
-        ):
+        required = [entry for entry in entries if entry["kind"] != "runtime"]
+        present_count = sum(
+            _entry_is_present(entry, git_paths) for entry in required
+        )
+        if "AGENTS.md" not in git_paths or present_count <= len(required) / 2:
             raise FoundryError(
                 f"{project} does not look like a workspace; run this command "
-                "at the root of a rendered workspace."
+                "at the root of a rendered workspace or restore its required "
+                "paths."
             )
         return None
     try:
@@ -226,10 +265,41 @@ def _require_workspace(project: Path) -> Mapping[str, object] | None:
         raise FoundryError(
             f"{record_path} is unreadable; repair or remove it and retry."
         ) from error
-    if not isinstance(value, dict) or value.get("directory") not in (
-        None,
-        "workspace",
+    if not isinstance(value, dict):
+        raise FoundryError(
+            f"{project} is not a workspace; run this command at the root "
+            "of a rendered workspace."
+        )
+    directory = value.get("directory")
+    context = value.get("context")
+    if context is not None and not isinstance(context, dict):
+        raise FoundryError(
+            f"{record_path} has invalid answers; repair its context and retry."
+        )
+    cookiecutter_context = (
+        context.get("cookiecutter") if isinstance(context, dict) else None
+    )
+    if cookiecutter_context is not None and not isinstance(
+        cookiecutter_context, dict
     ):
+        raise FoundryError(
+            f"{record_path} has invalid answers; repair its context and retry."
+        )
+    template_kind = (
+        cookiecutter_context.get("_template_kind")
+        if isinstance(cookiecutter_context, dict)
+        else None
+    )
+    if template_kind is not None and template_kind != "workspace":
+        raise FoundryError(
+            f"{project} is not a workspace; run this command at the root "
+            "of a rendered workspace."
+        )
+    if "directory" in value:
+        recognized = directory == "workspace"
+    else:
+        recognized = template_kind == "workspace"
+    if not recognized:
         raise FoundryError(
             f"{project} is not a workspace; run this command at the root "
             "of a rendered workspace."
@@ -247,13 +317,6 @@ def _rendered_top_level(
         cookiecutter_context = (
             context.get("cookiecutter") if isinstance(context, dict) else None
         )
-        if cookiecutter_context is not None and not isinstance(
-            cookiecutter_context, dict
-        ):
-            raise FoundryError(
-                f"{project / '.cruft.json'} has invalid answers; repair "
-                "its context and retry."
-            )
         allowed = {
             question.name for question in describe_questions("workspace")
         }
@@ -276,17 +339,49 @@ def _rendered_top_level(
         return {item.name for item in rendered.iterdir()}
 
 
-def _local_rule_target(token: str) -> str:
-    """Normalize a backticked template path to its declared prefix."""
-    components = (
-        token.strip().removeprefix("./").lstrip("/").strip("/").split("/")
-    )
+def _local_rule_target(token: str) -> str | None:
+    """Normalize a valid workspace-relative backticked path."""
+    if (
+        token.startswith("/")
+        or any(character.isspace() for character in token)
+        or "://" in token
+    ):
+        return None
+    normalized_path = posixpath.normpath(token)
+    if normalized_path in {"..", "."} or normalized_path.startswith("../"):
+        return None
+    components = normalized_path.removeprefix("./").strip("/").split("/")
     for index, component in enumerate(components):
         if "<" in component or "*" in component:
             components = components[:index]
             break
     path = "/".join(components)
-    return path.rstrip("/")
+    return path.rstrip("/") or None
+
+
+def _local_rules_section(text: str) -> str | None:
+    """Return the Local rules body, excluding fenced code blocks."""
+    lines = text.splitlines()
+    in_section = False
+    fence: str | None = None
+    section_lines: list[str] = []
+    for line in lines:
+        stripped = line.lstrip()
+        if fence is not None:
+            if stripped.startswith(fence):
+                fence = None
+            continue
+        if stripped.startswith("```") or stripped.startswith("~~~"):
+            fence = stripped[:3]
+            continue
+        if not in_section:
+            if _LOCAL_RULES_HEADING.match(line):
+                in_section = True
+            continue
+        if line.startswith("## "):
+            break
+        section_lines.append(line)
+    return "\n".join(section_lines) if in_section else None
 
 
 def parse_local_rules(
@@ -308,35 +403,71 @@ def parse_local_rules(
         ... ]))
         {'archive'}
     """
-    section = _LOCAL_RULES.search(text)
+    section = _local_rules_section(text)
     if section is None:
         return set()
     present = top_level_names or set()
     result: set[str] = set()
-    for match in _BACKTICK.finditer(section.group(1)):
-        token = match.group(1).strip()
-        if (
-            "/" in token
-            or token in present
-            or PurePosixPath(token).suffix in _KNOWN_EXTENSIONS
-        ):
-            normalized = _local_rule_target(token)
-            if normalized:
-                result.add(normalized)
+    for line in section.splitlines():
+        if _LAYOUT_RULE.match(line):
+            continue
+        for match in _BACKTICK.finditer(line):
+            token = match.group(1)
+            if (
+                "/" in token
+                or token in present
+                or PurePosixPath(token).suffix in _KNOWN_EXTENSIONS
+            ):
+                normalized = _local_rule_target(token)
+                if normalized is not None:
+                    result.add(normalized)
     return result
 
 
-def _is_declared(path: str, declarations: set[str]) -> bool:
-    """Return whether an exact or more specific declaration covers a path."""
-    return any(
-        declaration == path or declaration.startswith(path + "/")
-        for declaration in declarations
-    )
+def parse_layout_rules(text: str) -> tuple[LayoutRule, ...]:
+    r"""Parse explicit Moved and Dropped rules from Local rules.
+
+    Args:
+        text: The full workspace instruction file.
+
+    Returns:
+        Valid layout rules in document order.
+
+    Examples:
+        >>> parse_layout_rules(
+        ...     "## Local rules\n- Moved: `baselines/` to `vendor/`"
+        ... )
+        (LayoutRule(action='Moved', target='baselines', new_path='vendor'),)
+    """
+    section = _local_rules_section(text)
+    if section is None:
+        return ()
+    result: list[LayoutRule] = []
+    for line in section.splitlines():
+        rule_match = _LAYOUT_RULE.match(line)
+        if rule_match is None:
+            continue
+        action = (
+            rule_match.group(1) or rule_match.group(2) or ""
+        ).capitalize()
+        paths = [
+            path
+            for match in _BACKTICK.finditer(rule_match.group(3))
+            if (path := _local_rule_target(match.group(1))) is not None
+        ]
+        if not paths or action == "Moved" and len(paths) < 2:
+            continue
+        result.append(
+            LayoutRule(
+                action, paths[0], paths[1] if action == "Moved" else None
+            )
+        )
+    return tuple(result)
 
 
 def _workspace_rules(
     project: Path, present: set[str]
-) -> tuple[Path, bool, set[str]]:
+) -> tuple[bool, set[str], tuple[LayoutRule, ...]]:
     """Read the Local rules section and normalize its declared paths."""
     agents_path = project / "AGENTS.md"
     try:
@@ -349,36 +480,83 @@ def _workspace_rules(
         raise FoundryError(
             f"{agents_path} is unreadable; restore or repair it and retry."
         ) from error
-    has_section = _LOCAL_RULES.search(text) is not None
-    return agents_path, has_section, parse_local_rules(text, present)
+    has_section = _local_rules_section(text) is not None
+    return (
+        has_section,
+        parse_local_rules(text, present),
+        parse_layout_rules(text),
+    )
 
 
 def _missing_contract_paths(
-    project: Path,
     entries: list[dict[str, str]],
-    declarations: set[str],
+    git_paths: set[str],
+    rules: tuple[LayoutRule, ...],
 ) -> list[LayoutFinding]:
-    """Find required contract paths absent from disk."""
+    """Find required contract paths absent from Git and moved destinations."""
     missing: list[LayoutFinding] = []
+    contract_targets = {
+        entry["target"] for entry in entries if entry["kind"] != "runtime"
+    }
+    applicable_rules = tuple(
+        rule for rule in rules if rule.target in contract_targets
+    )
+    dropped_targets = {
+        rule.target for rule in applicable_rules if rule.action == "Dropped"
+    }
+    moved_targets = {
+        rule.target for rule in applicable_rules if rule.action == "Moved"
+    }
     for entry in entries:
         if entry["kind"] == "runtime":
             continue
         target = entry["target"]
-        item = project / target
-        exists = item.is_file() if entry["kind"] == "file" else item.is_dir()
-        if not exists and not _is_declared(target, declarations):
+        if (
+            target not in dropped_targets
+            and target not in moved_targets
+            and not _entry_is_present(entry, git_paths)
+        ):
             missing.append(LayoutFinding("missing", target))
+    for rule in applicable_rules:
+        if (
+            rule.action == "Moved"
+            and rule.new_path is not None
+            and not any(
+                path == rule.new_path or path.startswith(rule.new_path + "/")
+                for path in git_paths
+            )
+        ):
+            missing.append(LayoutFinding("missing", rule.new_path))
     return missing
 
 
 def _extra_top_level_paths(
-    present: set[str], expected: set[str], declarations: set[str]
+    present: set[str],
+    expected: set[str],
+    declarations: set[str],
+    rules: tuple[LayoutRule, ...],
+    entries: list[dict[str, str]],
 ) -> list[LayoutFinding]:
     """Find undeclared top-level paths outside the rendered template."""
+    contract_targets = {
+        entry["target"] for entry in entries if entry["kind"] != "runtime"
+    }
+    applicable_rules = tuple(
+        rule for rule in rules if rule.target in contract_targets
+    )
+    moved_destinations = {
+        PurePosixPath(rule.new_path).parts[0]
+        for rule in applicable_rules
+        if rule.action == "Moved" and rule.new_path is not None
+    }
     return [
         LayoutFinding("extra", name)
         for name in present - expected
-        if not _is_declared(name, declarations)
+        if not any(
+            declaration == name or declaration.startswith(name + "/")
+            for declaration in declarations
+        )
+        and name not in moved_destinations
     ]
 
 
@@ -424,20 +602,10 @@ def check_layout(path: Path) -> LayoutResult:
         )
 
     generated, entries = _load_contract()
-    cruft = _require_workspace(project)
-    present = _top_level_files(project)
-    entry_directories = {
-        entry["target"]
-        for entry in entries
-        if entry["kind"] in {"dir", "runtime"}
-        and (project / entry["target"]).is_dir()
-    }
-    present.update(
-        PurePosixPath(directory).parts[0] for directory in entry_directories
-    )
-    agents_path, has_local_rules, declarations = _workspace_rules(
-        project, present
-    )
+    git_paths = _git_paths(project)
+    cruft = _require_workspace(project, entries, git_paths)
+    present = _top_level_names(git_paths)
+    has_local_rules, declarations, rules = _workspace_rules(project, present)
     expected = _rendered_top_level(project, cruft)
     expected.update(generated)
     expected.update(
@@ -446,10 +614,12 @@ def check_layout(path: Path) -> LayoutResult:
         if entry["kind"] == "runtime"
     )
 
-    findings = _missing_contract_paths(project, entries, declarations)
-    if not agents_path.is_file() or not has_local_rules:
+    findings = _missing_contract_paths(entries, git_paths, rules)
+    if "AGENTS.md" not in git_paths or not has_local_rules:
         findings.append(LayoutFinding("missing-local-rules", "AGENTS.md"))
-    findings.extend(_extra_top_level_paths(present, expected, declarations))
+    findings.extend(
+        _extra_top_level_paths(present, expected, declarations, rules, entries)
+    )
     return LayoutResult(
         tuple(sorted(findings, key=lambda item: (item.kind, item.path)))
     )
@@ -458,6 +628,8 @@ def check_layout(path: Path) -> LayoutResult:
 __all__ = [
     "LayoutFinding",
     "LayoutResult",
+    "LayoutRule",
     "check_layout",
+    "parse_layout_rules",
     "parse_local_rules",
 ]

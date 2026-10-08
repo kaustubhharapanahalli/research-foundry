@@ -38,6 +38,16 @@
       "used_by": "meeting records are kept by date here"
     },
     {
+      "path": "presentations/<deck>/",
+      "kind": "dir",
+      "used_by": "decks live here, one folder each"
+    },
+    {
+      "path": "presentations/_base/",
+      "kind": "dir",
+      "used_by": "shared deck styles live here"
+    },
+    {
       "path": ".agent-state/<name>.md",
       "kind": "runtime",
       "used_by": "working state stays outside version control"
@@ -48,9 +58,9 @@
       "used_by": "workspace instructions and Local rules are read here"
     },
     {
-      "path": "docs/",
+      "path": "docs/adr/",
       "kind": "dir",
-      "used_by": "workspace documentation pages live here"
+      "used_by": "decisions about this workspace are recorded here"
     }
   ]
 }

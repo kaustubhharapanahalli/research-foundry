@@ -43,7 +43,8 @@ frontmatter (`type`, `title`, `description`, `resource`, `tags`,
 
 Rules here override the global standards for this workspace only. Name the
 global rule, the override, and why. A rule that is not written here does not
-apply. A path named in backticks here counts as declared for
-`make layout-check`.
+apply. A path named in backticks here counts as an addition for
+`make layout-check`; a required path that moved or was dropped needs its own
+`` - Moved: `old` to `new` `` or `` - Dropped: `path` `` line.
 
 _None yet._

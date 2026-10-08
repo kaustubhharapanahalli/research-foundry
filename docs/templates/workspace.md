@@ -36,9 +36,18 @@ make template-check
 Run `make layout-check` in a generated workspace to compare its paths with the
 shipped template contract. It is read-only and is not part of `make ci`; the
 target uses `uvx` and may need network access. A path in backticks in the
-`## Local rules` section of `AGENTS.md` counts as a declared workspace
-deviation. `research-foundry layout <workspace-path>` runs the same check from
-anywhere.
+`## Local rules` section of `AGENTS.md` counts as an addition. A required path
+that moved or was dropped needs an explicit rule:
+
+```markdown
+- Moved: `advisor-logs/` to `meetings/`, because meeting notes live elsewhere.
+- Dropped: `baselines/`, because this workspace has no baselines.
+```
+
+`research-foundry layout <workspace-path>` runs the same check from anywhere.
+The command exits 0 when the layout matches, 1 when it reports findings, and
+2 when the repository is not recognized as a workspace. See
+[ADR 0012](../adr/0012-workspace-path-contract.md) for the path contract.
 
 `make layout-check` needs research-foundry 0.2.0 or later. Until 0.2.0 is
 released, uv stops with "no solution" rather than running an older release
