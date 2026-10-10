@@ -1,7 +1,7 @@
 # The frontend's production image: Next's standalone output, run by the
 # non-root node user. Base images are pinned by digest.
 # https://nextjs.org/docs/app/getting-started/deploying#docker
-FROM node:26.10.0-trixie-slim@sha256:ec7758ee051e457b468b32bde57b0879010b325bb9862718e9615225ce4aaae1 AS base
+FROM node:26.10.0-trixie-slim@sha256:930557a230abacbc3f4fd9b8648abf8f4bee1e17cb72195dcdfb2f709bc85b33 AS base
 ENV NEXT_TELEMETRY_DISABLED=1
 # Node 25 and later ship no Corepack, so pnpm is installed by version.
 RUN npm install --global pnpm@12.8.1
@@ -18,7 +18,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm exec next build
 
-FROM node:26.10.0-trixie-slim@sha256:ec7758ee051e457b468b32bde57b0879010b325bb9862718e9615225ce4aaae1
+FROM node:26.10.0-trixie-slim@sha256:930557a230abacbc3f4fd9b8648abf8f4bee1e17cb72195dcdfb2f709bc85b33
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     HOSTNAME=0.0.0.0 \
